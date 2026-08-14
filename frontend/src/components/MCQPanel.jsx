@@ -135,14 +135,17 @@ export default function MCQPanel({
           {clarifying_questions.map((q, idx) => (
             <div key={q.id || idx} className="question-card">
               <div className="question-header">
-                <div>
-                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700, marginRight: '8px' }}>
+                <div className="question-title-row">
+                  <span className="question-number">
                     0{idx + 1}.
                   </span>
                   <span className="question-title">{q.question}</span>
                 </div>
                 {q.impacts && (
-                  <span className="question-impact">{q.impacts}</span>
+                  <div className="question-impact">
+                    <span style={{ color: 'var(--accent-cyan)', fontWeight: 600 }}>Impact:</span>
+                    <span>{q.impacts}</span>
+                  </div>
                 )}
               </div>
 
