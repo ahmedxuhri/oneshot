@@ -1,0 +1,110 @@
+{
+  "id": "mobile_offline_first",
+  "name": "Cross-Platform Mobile App (Offline-First Sync)",
+  "category": "mobile",
+  "description": "Robust mobile application (React Native / Flutter / Kotlin Multiplatform) with local-first database persistence, automatic background conflict resolution, outbox mutation queue, and optimistic UI updates.",
+  "keywords": [
+    "mobile",
+    "react-native",
+    "flutter",
+    "expo",
+    "offline-first",
+    "sync",
+    "ios",
+    "android",
+    "sqlite",
+    "watermelon",
+    "realm"
+  ],
+  "data_models": {
+    "outbox_actions": {
+      "table": "outbox_actions_queue",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "action_type",
+          "type": "String (CREATE, UPDATE, DELETE)",
+          "nullable": false
+        },
+        {
+          "name": "entity_name",
+          "type": "String",
+          "nullable": false
+        },
+        {
+          "name": "payload",
+          "type": "JSON",
+          "nullable": false
+        },
+        {
+          "name": "client_timestamp",
+          "type": "Long",
+          "nullable": false
+        },
+        {
+          "name": "retry_count",
+          "type": "Integer",
+          "default": 0
+        }
+      ],
+      "indexes": [
+        "client_timestamp",
+        "retry_count"
+      ],
+      "proven_uses": 35000
+    }
+  },
+  "clarifying_questions": [
+    {
+      "id": "mobile_framework",
+      "question": "Mobile development framework?",
+      "options": [
+        "React Native (Expo + TypeScript)",
+        "Flutter (Dart)",
+        "Kotlin Multiplatform (KMP)",
+        "Native Kotlin (Android)"
+      ],
+      "impacts": "Sets build toolchain, navigation library, and state management libraries"
+    },
+    {
+      "id": "conflict_resolution",
+      "question": "Sync conflict resolution strategy?",
+      "options": [
+        "Last-Write-Wins (Timestamp based)",
+        "Client-Wins (Optimistic overwrite)",
+        "Server-Wins with merge notification",
+        "CRDTs (Conflict-free Replicated Data Types)"
+      ],
+      "impacts": "Adds revision vectors and merge resolver logic"
+    },
+    {
+      "id": "push_notifications",
+      "question": "Push notification integration?",
+      "options": [
+        "Firebase Cloud Messaging (FCM) + APNs",
+        "OneSignal SDK",
+        "No push notifications"
+      ],
+      "impacts": "Configures background message handlers and device token registration"
+    }
+  ],
+  "common_stacks": [
+    "React Native + WatermelonDB / SQLite + Zustand",
+    "Flutter + Hive / Isar + Riverpod",
+    "Kotlin Compose + Room + Ktor"
+  ],
+  "known_constraints": {
+    "offline_queue_retries_max": 5,
+    "sync_latency_target_ms": 200
+  },
+  "known_failure_modes": [
+    "Failing to queue actions when internet connectivity drops mid-mutation resulting in lost user edits",
+    "Infinite retry loops on 4xx validation errors crashing the background sync worker",
+    "Unsynchronized clock drift causing Last-Write-Wins timestamps to overwrite newer data \u2014 use Lamport timestamps or server-coordinated sync tokens"
+  ],
+  "confidence_score": 0.96
+}

@@ -10,7 +10,8 @@ import {
   Database, 
   Cpu, 
   Settings2,
-  ExternalLink
+  ExternalLink,
+  Smartphone
 } from 'lucide-react';
 
 export default function MCQPanel({
@@ -32,13 +33,15 @@ export default function MCQPanel({
     web_sources = []
   } = interpretation;
 
+  const isMobile = pattern_category === 'mobile' || matched_pattern.includes('android') || matched_pattern.includes('mobile');
+
   // Initialize state with default first option for each clarifying question
   const [answers, setAnswers] = useState({});
   const [stack, setStack] = useState({
-    backend: 'Python (FastAPI)',
-    database: 'PostgreSQL',
-    cache: 'Redis',
-    frontend: 'React (SPA)'
+    backend: isMobile ? 'Kotlin (Jetpack Compose)' : 'Python (FastAPI)',
+    database: isMobile ? 'Room DB (SQLite)' : 'PostgreSQL',
+    cache: isMobile ? 'DataStore (Encrypted)' : 'Redis',
+    frontend: isMobile ? 'Material Design 3 (Compose)' : 'React (SPA)'
   });
   const [customNotes, setCustomNotes] = useState('');
 
@@ -50,7 +53,16 @@ export default function MCQPanel({
       }
     });
     setAnswers(initialAnswers);
-  }, [clarifying_questions]);
+
+    if (isMobile) {
+      setStack({
+        backend: 'Kotlin (Jetpack Compose + Coroutines)',
+        database: 'Room DB (SQLite Offline-First)',
+        cache: 'EncryptedDataStore / Android Keystore',
+        frontend: 'Jetpack Compose (Material 3 UI)'
+      });
+    }
+  }, [clarifying_questions, isMobile]);
 
   const handleSelectOption = (questionId, option) => {
     setAnswers((prev) => ({
@@ -159,70 +171,116 @@ export default function MCQPanel({
         {/* Tech Stack Customizer */}
         <div className="stack-section">
           <div className="section-heading">
-            <Server size={18} color="var(--accent-blue)" />
+            {isMobile ? <Smartphone size={18} color="var(--accent-blue)" /> : <Server size={18} color="var(--accent-blue)" />}
             <span>Target Technology Stack</span>
           </div>
 
           <div className="stack-grid">
             <div className="stack-item">
-              <label>Backend Framework</label>
+              <label>{isMobile ? 'Language / Architecture' : 'Backend Framework'}</label>
               <select
                 className="stack-select"
                 value={stack.backend}
                 onChange={(e) => setStack({ ...stack, backend: e.target.value })}
               >
-                <option value="Python (FastAPI)">Python (FastAPI)</option>
-                <option value="Python (Django / DRF)">Python (Django / DRF)</option>
-                <option value="Node.js (Next.js App Router)">Node.js (Next.js)</option>
-                <option value="Node.js (Express / Fastify)">Node.js (Express / Fastify)</option>
-                <option value="Node.js (NestJS)">Node.js (NestJS)</option>
-                <option value="Go (Gin / Fiber)">Go (Gin / Fiber)</option>
-                <option value="Rust (Axum)">Rust (Axum)</option>
+                {isMobile ? (
+                  <>
+                    <option value="Kotlin (Jetpack Compose + Coroutines)">Kotlin (Jetpack Compose)</option>
+                    <option value="Kotlin Multiplatform (KMP)">Kotlin Multiplatform (KMP)</option>
+                    <option value="Flutter (Dart + Riverpod)">Flutter (Dart)</option>
+                    <option value="React Native (Expo + TypeScript)">React Native (Expo)</option>
+                    <option value="Swift (SwiftUI / iOS)">Swift (SwiftUI)</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="Python (FastAPI)">Python (FastAPI)</option>
+                    <option value="Python (Django / DRF)">Python (Django / DRF)</option>
+                    <option value="Node.js (Next.js App Router)">Node.js (Next.js)</option>
+                    <option value="Node.js (Express / Fastify)">Node.js (Express / Fastify)</option>
+                    <option value="Node.js (NestJS)">Node.js (NestJS)</option>
+                    <option value="Go (Gin / Fiber)">Go (Gin / Fiber)</option>
+                    <option value="Rust (Axum)">Rust (Axum)</option>
+                  </>
+                )}
               </select>
             </div>
 
             <div className="stack-item">
-              <label>Primary Database</label>
+              <label>{isMobile ? 'Local Storage / Cache' : 'Primary Database'}</label>
               <select
                 className="stack-select"
                 value={stack.database}
                 onChange={(e) => setStack({ ...stack, database: e.target.value })}
               >
-                <option value="PostgreSQL">PostgreSQL</option>
-                <option value="MySQL 8+">MySQL 8+</option>
-                <option value="SQLite (Embedded / LibSQL)">SQLite (LibSQL / Turso)</option>
-                <option value="MongoDB">MongoDB</option>
-                <option value="Supabase (PostgreSQL + RLS)">Supabase</option>
+                {isMobile ? (
+                  <>
+                    <option value="Room DB (SQLite + Flow)">Room DB (SQLite)</option>
+                    <option value="SQLDelight (Multiplatform)">SQLDelight</option>
+                    <option value="WatermelonDB (React Native)">WatermelonDB</option>
+                    <option value="Hive / Isar (Flutter)">Hive / Isar</option>
+                    <option value="Firebase Firestore / Realm">Firebase / Realm</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="PostgreSQL">PostgreSQL</option>
+                    <option value="MySQL 8+">MySQL 8+</option>
+                    <option value="SQLite (Embedded / LibSQL)">SQLite (LibSQL / Turso)</option>
+                    <option value="MongoDB">MongoDB</option>
+                    <option value="Supabase (PostgreSQL + RLS)">Supabase</option>
+                  </>
+                )}
               </select>
             </div>
 
             <div className="stack-item">
-              <label>Caching / Queue</label>
+              <label>{isMobile ? 'Preferences / Storage' : 'Caching / Queue'}</label>
               <select
                 className="stack-select"
                 value={stack.cache}
                 onChange={(e) => setStack({ ...stack, cache: e.target.value })}
               >
-                <option value="Redis">Redis</option>
-                <option value="DragonflyDB / KeyDB">DragonflyDB / KeyDB</option>
-                <option value="RabbitMQ / Celery">RabbitMQ</option>
-                <option value="PostgreSQL SKIP LOCKED Queue">PostgreSQL Queue</option>
-                <option value="None / In-Memory">None / In-Memory</option>
+                {isMobile ? (
+                  <>
+                    <option value="EncryptedDataStore / Android Keystore">EncryptedDataStore (Keystore)</option>
+                    <option value="DataStore Preferences">DataStore Preferences</option>
+                    <option value="MMKV (High Performance Key-Value)">MMKV</option>
+                    <option value="SharedPreferences (Encrypted)">EncryptedSharedPreferences</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="Redis">Redis</option>
+                    <option value="DragonflyDB / KeyDB">DragonflyDB / KeyDB</option>
+                    <option value="RabbitMQ / Celery">RabbitMQ</option>
+                    <option value="PostgreSQL SKIP LOCKED Queue">PostgreSQL Queue</option>
+                    <option value="None / In-Memory">None / In-Memory</option>
+                  </>
+                )}
               </select>
             </div>
 
             <div className="stack-item">
-              <label>Frontend UI</label>
+              <label>UI Framework / Design System</label>
               <select
                 className="stack-select"
                 value={stack.frontend}
                 onChange={(e) => setStack({ ...stack, frontend: e.target.value })}
               >
-                <option value="React (Vite SPA + Tailwind)">React (Vite SPA)</option>
-                <option value="Next.js 14+ (React Server Components)">Next.js 14+</option>
-                <option value="Vue.js 3 / Nuxt">Vue.js / Nuxt</option>
-                <option value="SvelteKit">SvelteKit</option>
-                <option value="Vanilla HTML / JS (No Framework)">Vanilla HTML / JS</option>
+                {isMobile ? (
+                  <>
+                    <option value="Jetpack Compose (Material 3 Dynamic Theming)">Jetpack Compose (Material 3)</option>
+                    <option value="Flutter Material 3">Flutter Material 3</option>
+                    <option value="React Native Paper / NativeWind">React Native Paper</option>
+                    <option value="SwiftUI (Apple HIG)">SwiftUI</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="React (Vite SPA + Tailwind)">React (Vite SPA)</option>
+                    <option value="Next.js 14+ (React Server Components)">Next.js 14+</option>
+                    <option value="Vue.js 3 / Nuxt">Vue.js / Nuxt</option>
+                    <option value="SvelteKit">SvelteKit</option>
+                    <option value="Vanilla HTML / JS (No Framework)">Vanilla HTML / JS</option>
+                  </>
+                )}
               </select>
             </div>
           </div>
@@ -234,7 +292,7 @@ export default function MCQPanel({
             <input
               type="text"
               className="stack-input"
-              placeholder="e.g. Include rate limiting on /auth endpoints, support dark mode in UI, use Docker Compose..."
+              placeholder={isMobile ? "e.g. Target Android 14 (API 34), support edge-to-edge layout, implement biometric prompt..." : "e.g. Include rate limiting on /auth endpoints, support dark mode in UI..."}
               value={customNotes}
               onChange={(e) => setCustomNotes(e.target.value)}
             />

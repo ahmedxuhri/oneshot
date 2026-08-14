@@ -1,0 +1,149 @@
+{
+  "id": "android_native_compose",
+  "name": "Native Android App (Jetpack Compose & Clean Architecture)",
+  "category": "mobile",
+  "description": "Production-ready Android application architecture utilizing Kotlin, Jetpack Compose UI (Material 3), MVVM / MVI unidirectional state flow, Room SQLite database, Coroutines/Flow, Retrofit networking, and Hilt dependency injection.",
+  "keywords": [
+    "android",
+    "kotlin",
+    "jetpack-compose",
+    "compose",
+    "mobile",
+    "material3",
+    "room",
+    "apk",
+    "google-play",
+    "coroutine",
+    "flow",
+    "mvvm",
+    "mvi",
+    "hilt"
+  ],
+  "data_models": {
+    "app_entities": {
+      "table": "local_entities_room",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String (@PrimaryKey)",
+          "primary": true
+        },
+        {
+          "name": "title",
+          "type": "String",
+          "nullable": false
+        },
+        {
+          "name": "payload_json",
+          "type": "String",
+          "nullable": false
+        },
+        {
+          "name": "sync_status",
+          "type": "Enum(SYNCED, PENDING_UPLOAD, PENDING_DELETE)",
+          "default": "SYNCED"
+        },
+        {
+          "name": "created_at",
+          "type": "Long (Timestamp)",
+          "default": "System.currentTimeMillis()"
+        },
+        {
+          "name": "updated_at",
+          "type": "Long (Timestamp)",
+          "default": "System.currentTimeMillis()"
+        }
+      ],
+      "indexes": [
+        "id",
+        "sync_status",
+        "updated_at"
+      ],
+      "proven_uses": 45000
+    },
+    "user_preferences": {
+      "table": "datastore_preferences",
+      "fields": [
+        {
+          "name": "auth_token_encrypted",
+          "type": "EncryptedSharedPreferences / MasterKey",
+          "nullable": true
+        },
+        {
+          "name": "theme_mode",
+          "type": "Enum(SYSTEM, LIGHT, DARK)",
+          "default": "SYSTEM"
+        },
+        {
+          "name": "biometrics_enabled",
+          "type": "Boolean",
+          "default": false
+        }
+      ],
+      "indexes": [],
+      "proven_uses": 40000
+    }
+  },
+  "clarifying_questions": [
+    {
+      "id": "architecture_pattern",
+      "question": "State architecture & UI pattern?",
+      "options": [
+        "MVI with Unidirectional Data Flow (StateFlow + SharedFlow)",
+        "Standard MVVM (ViewModel + LiveData/StateFlow)",
+        "Clean Architecture 3-tier (Domain UseCases + Data Repositories + UI)"
+      ],
+      "impacts": "Structures UI State sealed classes, Intent/Event handling, and Repository interfaces"
+    },
+    {
+      "id": "offline_strategy",
+      "question": "Data caching & offline strategy?",
+      "options": [
+        "Offline-First (Room DB is Single Source of Truth + Network Sync)",
+        "Network-First with HTTP OkHttp Cache fallback",
+        "Real-time WebSockets / Firebase Firestore cache"
+      ],
+      "impacts": "Adds Room DAO Flow queries, WorkManager periodic sync workers, and network bound resource"
+    },
+    {
+      "id": "background_processing",
+      "question": "Background execution & sync?",
+      "options": [
+        "WorkManager (Durable, battery-aware background tasks)",
+        "Foreground Service with persistent notification (Music/GPS/Sync)",
+        "No background workers"
+      ],
+      "impacts": "Configures AndroidManifest service declarations, battery optimization exemptions, and WorkManager constraints"
+    },
+    {
+      "id": "security_biometrics",
+      "question": "Device authentication & storage security?",
+      "options": [
+        "BiometricPrompt (Fingerprint / Face Unlock) + Android Keystore encryption",
+        "Basic Pin / Password screen",
+        "Standard token storage without biometrics"
+      ],
+      "impacts": "Adds BiometricManager checks, CryptoObject, and MasterKeys encrypted Datastore"
+    }
+  ],
+  "common_stacks": [
+    "Kotlin + Jetpack Compose + Room + Retrofit + Hilt + Coroutines",
+    "Kotlin + Compose Multiplatform (KMP) + SQLDelight + Ktor",
+    "Kotlin + Jetpack Compose + Firebase SDK"
+  ],
+  "known_constraints": {
+    "ui_frame_rate_target_fps": 60,
+    "cold_app_startup_time_ms": 500,
+    "min_sdk_version": 26,
+    "target_sdk_version": 35,
+    "touch_target_size_min_dp": 48
+  },
+  "known_failure_modes": [
+    "Triggering network calls or disk I/O on Dispatchers.Main (blocking UI thread causing ANRs) \u2014 always switch to Dispatchers.IO",
+    "Storing plaintext auth tokens in standard SharedPreferences \u2014 use EncryptedSharedPreferences with Android Keystore",
+    "Memory leaks from retaining Activity/Context references inside singletons or ViewModels \u2014 use Application Context or Hilt ViewModel injection",
+    "Failing to handle Android configuration changes (screen rotation, dark mode switch, process death) causing UI state loss \u2014 use rememberSaveable and SavedStateHandle",
+    "Hardcoding layout sizes in pixels (px) instead of density-independent pixels (dp/sp), causing broken scaling on different phone resolutions"
+  ],
+  "confidence_score": 0.97
+}

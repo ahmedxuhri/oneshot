@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
-import { ArrowRight, Sparkles, ShieldCheck, Database, Zap, BookOpen } from 'lucide-react';
+import { ArrowRight, Sparkles, ShieldCheck, Database, Zap, BookOpen, Smartphone } from 'lucide-react';
 
 const EXAMPLE_PROMPTS = [
+  "Native Android app in Kotlin with Jetpack Compose, Room DB, and MVVM",
   "Two-sided marketplace for gear rentals with Stripe Connect and reviews",
   "SaaS subscription engine with team seats and usage-based metered billing",
+  "Cross-platform mobile app with offline-first sync and push notifications",
   "Production JWT authentication with refresh token rotation and MFA",
   "Full-lifecycle e-commerce checkout with atomic inventory decrement",
   "Real-time team chat with WebSocket channels and read receipts",
   "Calendly-like booking calendar with Google 2-way sync & DST prevention",
-  "Multi-tenant SaaS foundation with PostgreSQL Row-Level Security",
-  "Enterprise admin backoffice with immutable audit logging and CSV export"
+  "Multi-tenant SaaS foundation with PostgreSQL Row-Level Security"
 ];
 
-export default function PromptInput({ onSubmit, onOpenCatalog, patternCount = 20, loading = false }) {
+export default function PromptInput({ onSubmit, onOpenCatalog, patternCount = 22, loading = false }) {
   const [prompt, setPrompt] = useState('');
 
   const handleSubmit = (e) => {
@@ -33,7 +34,7 @@ export default function PromptInput({ onSubmit, onOpenCatalog, patternCount = 20
       <div className="hero-pill">
         <span className="dot" />
         <span>Lossless AI Architecture Specifier</span>
-        <span className="badge-count">{patternCount} Patterns</span>
+        <span className="badge-count">{patternCount} Systems</span>
       </div>
 
       <h1 className="hero-title">
@@ -48,7 +49,7 @@ export default function PromptInput({ onSubmit, onOpenCatalog, patternCount = 20
       </h1>
 
       <p className="hero-subtitle">
-        Natural language is lossy. OneShot translates your rough idea into a formal, unambiguous specification for Claude, GPT, and Cursor.
+        Web, backend, or native Android apps. OneShot translates your rough idea into a formal, unambiguous specification for Claude, GPT, and Cursor.
       </p>
 
       {/* Main Input Form */}
@@ -56,7 +57,7 @@ export default function PromptInput({ onSubmit, onOpenCatalog, patternCount = 20
         <form onSubmit={handleSubmit} className="prompt-box">
           <textarea
             className="prompt-textarea"
-            placeholder="What do you want to build? (Be rough. Be messy. We'll figure it out...)"
+            placeholder="What do you want to build? (e.g. Native Android app in Jetpack Compose, or marketplace with Stripe...)"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -74,7 +75,7 @@ export default function PromptInput({ onSubmit, onOpenCatalog, patternCount = 20
                 type="button"
                 className="btn-secondary-sm"
                 onClick={onOpenCatalog}
-                title="Browse all 20 verified system patterns"
+                title="Browse all verified system patterns"
               >
                 <BookOpen size={14} />
                 <span>Browse Catalog</span>
@@ -120,17 +121,17 @@ export default function PromptInput({ onSubmit, onOpenCatalog, patternCount = 20
           </div>
           <h3>Lossless Intent Translation</h3>
           <p>
-            Stops AI from guessing database relationships, edge conditions, or API signatures from loose descriptions.
+            Stops AI from guessing database relationships, lifecycle edge cases, or API signatures from loose descriptions.
           </p>
         </div>
 
         <div className="feature-box">
           <div className="feature-icon-wrap">
-            <Database size={20} />
+            <Smartphone size={20} />
           </div>
-          <h3>20 Production Schemas</h3>
+          <h3>Android & Full-Stack Schemas</h3>
           <p>
-            Pre-validated relational database tables with proper indexing, UUID primary keys, and foreign key cascades.
+            From Jetpack Compose, Room SQLite, and WorkManager to PostgreSQL, Redis, and high-throughput microservices.
           </p>
         </div>
 
@@ -140,7 +141,7 @@ export default function PromptInput({ onSubmit, onOpenCatalog, patternCount = 20
           </div>
           <h3>Zero-Tolerance Anti-Patterns</h3>
           <p>
-            Explicitly instructs your AI to avoid known race conditions, double booking bugs, and OWASP security pitfalls.
+            Guards against UI thread blocking (ANRs), state loss on screen rotation, memory leaks, and unencrypted auth tokens.
           </p>
         </div>
       </div>
