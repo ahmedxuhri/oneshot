@@ -25,7 +25,8 @@ export async function generateSpec(patternId, answers, stack, customRequirements
       domain_title: domainMeta.domain_title,
       domain_summary: domainMeta.domain_summary,
       domain_models: domainMeta.domain_models,
-      user_prompt: domainMeta.user_prompt
+      user_prompt: domainMeta.user_prompt,
+      design_theme: domainMeta.design_theme || 'linear_dark'
     })
   });
   if (!res.ok) {

@@ -14,9 +14,95 @@ import {
   Smartphone,
   Sparkles,
   ShieldCheck,
-  Wand2
+  Wand2,
+  Palette,
+  Eye,
+  Check
 } from 'lucide-react';
 import { auditStack } from '../api';
+
+const THEME_OPTIONS = [
+  {
+    id: 'linear_dark',
+    name: 'Linear Dark / Midnight Glow',
+    badge: 'Developer / Modern Dark',
+    badgeColor: '#00F2FE',
+    desc: 'Deep obsidian surfaces, electric cyan CTAs, glass borders, high-contrast monospace accents.',
+    bgPreview: '#08090C',
+    cardPreview: '#151821',
+    primaryColor: '#00F2FE',
+    accentColor: '#10B981',
+    textColor: '#F8FAFC',
+    subTextColor: '#94A3B8',
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    btnRadius: '6px',
+    bestFor: 'Modern Web Apps, Developer Tools & SaaS'
+  },
+  {
+    id: 'material_you',
+    name: 'Material Design 3 / Android M3',
+    badge: 'Android 15 Native',
+    badgeColor: '#A8C7FA',
+    desc: 'Google Material You dynamic tonal palette, pill-shaped buttons, 48dp touch targets.',
+    bgPreview: '#111318',
+    cardPreview: '#282A2F',
+    primaryColor: '#A8C7FA',
+    accentColor: '#A8DAB5',
+    textColor: '#E2E2E9',
+    subTextColor: '#C4C6D0',
+    borderColor: 'rgba(196, 198, 208, 0.22)',
+    btnRadius: '9999px',
+    bestFor: 'Native Android (Jetpack Compose) & Mobile Apps'
+  },
+  {
+    id: 'apple_hig',
+    name: 'Apple HIG / Clean Glass',
+    badge: 'iOS / macOS Native',
+    badgeColor: '#0A84FF',
+    desc: 'Cupertino frosted glassmorphism, SF Pro typography, refined hairline dividers.',
+    bgPreview: '#000000',
+    cardPreview: '#1C1C1E',
+    primaryColor: '#0A84FF',
+    accentColor: '#30D158',
+    textColor: '#FFFFFF',
+    subTextColor: 'rgba(235, 235, 245, 0.6)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    btnRadius: '10px',
+    bestFor: 'iOS Native (SwiftUI) & Creative Utility Tools'
+  },
+  {
+    id: 'saas_clean_light',
+    name: 'Stripe / Clean Soft-SaaS',
+    badge: 'Enterprise Light',
+    badgeColor: '#6366F1',
+    desc: 'Crisp white cards, soft ambient drop shadows, indigo primary CTAs, high daylight legibility.',
+    bgPreview: '#F8FAFC',
+    cardPreview: '#FFFFFF',
+    primaryColor: '#6366F1',
+    accentColor: '#10B981',
+    textColor: '#0F172A',
+    subTextColor: '#64748B',
+    borderColor: '#E2E8F0',
+    btnRadius: '8px',
+    bestFor: 'Admin Dashboards, B2B SaaS & Billing Portals'
+  },
+  {
+    id: 'tactical_mono',
+    name: 'Tactical Monospace / FinTech',
+    badge: 'Telemetry / Terminal',
+    badgeColor: '#F59E0B',
+    desc: 'High-density telemetry, neon amber status indicators, compact 4px spacing, sharp edges.',
+    bgPreview: '#05070A',
+    cardPreview: '#131822',
+    primaryColor: '#F59E0B',
+    accentColor: '#10B981',
+    textColor: '#F0F6FC',
+    subTextColor: '#8B949E',
+    borderColor: '#30363D',
+    btnRadius: '3px',
+    bestFor: 'Crypto Bots, IoT Telemetry & Trading Terminal UI'
+  }
+];
 
 export default function MCQPanel({
   interpretation,
@@ -41,6 +127,10 @@ export default function MCQPanel({
   } = interpretation;
 
   const isMobile = pattern_category === 'mobile' || matched_pattern.includes('android') || matched_pattern.includes('mobile');
+
+  // Smart initial design theme
+  const initialTheme = isMobile ? 'material_you' : (['admin', 'crm', 'saas'].includes(pattern_category) ? 'saas_clean_light' : 'linear_dark');
+  const [selectedTheme, setSelectedTheme] = useState(initialTheme);
 
   // Initialize state with default first option for each clarifying question
   const [answers, setAnswers] = useState({});
@@ -69,6 +159,7 @@ export default function MCQPanel({
         cache: 'EncryptedDataStore / Android Keystore',
         frontend: 'Jetpack Compose (Material 3 UI)'
       });
+      setSelectedTheme('material_you');
     }
   }, [clarifying_questions, isMobile]);
 
@@ -106,7 +197,8 @@ export default function MCQPanel({
         patternId: matched_pattern,
         answers,
         stack,
-        customRequirements: customNotes
+        customRequirements: customNotes,
+        designTheme: selectedTheme
       });
     }
   };
@@ -174,7 +266,7 @@ export default function MCQPanel({
       </div>
 
       <form onSubmit={handleSubmit}>
-        {/* Clarifying Questions (3-5 MCQs) */}
+        {/* Section 1: Clarifying Questions (3-5 MCQs) */}
         <div className="questions-list">
           <div className="section-heading">
             <Settings2 size={18} color="var(--accent-cyan)" />
@@ -220,7 +312,149 @@ export default function MCQPanel({
           ))}
         </div>
 
-        {/* Tech Stack Customizer with Live AI Audit */}
+        {/* Section 2: Visual UI/UX & Design System Selector (NEW) */}
+        <div className="theme-selector-section" style={{
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: 'var(--radius-lg)',
+          padding: '24px',
+          marginBottom: '28px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+            <div className="section-heading" style={{ margin: 0 }}>
+              <Palette size={18} color="var(--accent-cyan)" />
+              <span>Visual Design System & Aesthetic (DESIGN.md)</span>
+            </div>
+            <span style={{ fontSize: '12px', color: 'var(--accent-cyan)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
+              Open-Source DESIGN.md Standard
+            </span>
+          </div>
+          <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', marginBottom: '18px', lineHeight: 1.5 }}>
+            Select the visual aesthetic for your frontend/app. OneShot will generate complete tokens (colors, 8px grid, typography scale, radii) and inject them into the specification to prevent AI design drift.
+          </p>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '14px'
+          }}>
+            {THEME_OPTIONS.map((t) => {
+              const isSelected = selectedTheme === t.id;
+              return (
+                <div
+                  key={t.id}
+                  onClick={() => setSelectedTheme(t.id)}
+                  style={{
+                    background: isSelected ? 'rgba(56, 189, 248, 0.1)' : 'var(--bg-card)',
+                    border: isSelected ? '2px solid var(--accent-cyan)' : '1px solid var(--border-card)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '16px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    boxShadow: isSelected ? '0 0 20px rgba(0, 242, 254, 0.18)' : 'none'
+                  }}
+                >
+                  {/* Top Bar with Title and Badge */}
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div className="radio-circle" style={{
+                          borderColor: isSelected ? 'var(--accent-cyan)' : '#94a3b8',
+                          background: isSelected ? 'var(--accent-cyan)' : 'transparent'
+                        }}>
+                          {isSelected && <div className="radio-inner-dot" />}
+                        </div>
+                        <span style={{ fontSize: '15px', fontWeight: 700, color: isSelected ? '#ffffff' : 'var(--text-primary)' }}>
+                          {t.name}
+                        </span>
+                      </div>
+                      <span style={{
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        fontFamily: 'var(--font-mono)',
+                        padding: '2px 8px',
+                        borderRadius: '9999px',
+                        background: `${t.badgeColor}22`,
+                        color: t.badgeColor,
+                        border: `1px solid ${t.badgeColor}44`
+                      }}>
+                        {t.badge}
+                      </span>
+                    </div>
+
+                    <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.4, margin: '8px 0 12px 0' }}>
+                      {t.desc}
+                    </p>
+                  </div>
+
+                  {/* Visual Preview Box (Mini UI Mockup) */}
+                  <div>
+                    <div style={{
+                      background: t.bgPreview,
+                      border: `1px solid ${t.borderColor}`,
+                      borderRadius: '8px',
+                      padding: '10px',
+                      marginBottom: '10px'
+                    }}>
+                      {/* Mini Card */}
+                      <div style={{
+                        background: t.cardPreview,
+                        border: `1px solid ${t.borderColor}`,
+                        borderRadius: t.btnRadius === '9999px' ? '12px' : t.btnRadius,
+                        padding: '8px 10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: '8px'
+                      }}>
+                        <div>
+                          <div style={{ fontSize: '11px', fontWeight: 700, color: t.textColor }}>Preview Card</div>
+                          <div style={{ fontSize: '9.5px', color: t.subTextColor }}>48dp Touch Target</div>
+                        </div>
+
+                        {/* Mini Button */}
+                        <div style={{
+                          background: t.primaryColor,
+                          color: t.id === 'saas_clean_light' ? '#FFFFFF' : '#000000',
+                          fontSize: '10px',
+                          fontWeight: 700,
+                          padding: '4px 10px',
+                          borderRadius: t.btnRadius,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '3px'
+                        }}>
+                          <span>Action</span>
+                        </div>
+                      </div>
+
+                      {/* Color Palette Dots */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '10px', color: t.subTextColor, fontFamily: 'var(--font-mono)' }}>Palette:</span>
+                          <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: t.bgPreview, border: '1px solid #fff' }} title="Background" />
+                          <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: t.cardPreview, border: '1px solid #999' }} title="Surface" />
+                          <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: t.primaryColor }} title="Primary Accent" />
+                          <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: t.accentColor }} title="Status" />
+                        </div>
+                        <span style={{ fontSize: '10px', color: t.subTextColor, fontFamily: 'var(--font-mono)' }}>WCAG AA ✓</span>
+                      </div>
+                    </div>
+
+                    <div style={{ fontSize: '11px', color: 'var(--accent-cyan)', fontFamily: 'var(--font-mono)' }}>
+                      💡 Best for: {t.bestFor}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Section 3: Tech Stack Customizer with Live AI Audit */}
         <div className="stack-section">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
             <div className="section-heading" style={{ margin: 0 }}>

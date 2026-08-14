@@ -18,6 +18,7 @@ class GenerateRequest(BaseModel):
     domain_summary: Optional[str] = None
     domain_models: Optional[Dict[str, Any]] = None
     user_prompt: Optional[str] = None
+    design_theme: Optional[str] = "linear_dark"
 
 @router.post("")
 @router.post("/")
@@ -34,7 +35,8 @@ async def generate_spec(req: GenerateRequest):
         domain_title=req.domain_title,
         domain_summary=req.domain_summary,
         domain_models=req.domain_models,
-        user_prompt=req.user_prompt
+        user_prompt=req.user_prompt,
+        design_theme=req.design_theme
     )
 
     return {
@@ -43,5 +45,7 @@ async def generate_spec(req: GenerateRequest):
         "pattern_name": pattern["name"],
         "spec": spec_result["spec"],
         "spec_instruction": spec_result["spec_instruction"],
+        "design_md": spec_result["design_md"],
+        "theme_info": spec_result.get("theme_info", {}),
         "filename": spec_result["filename"]
     }

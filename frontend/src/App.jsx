@@ -81,7 +81,7 @@ export default function App() {
   };
 
   // Step 2: User answers MCQs and clicks Generate Spec
-  const handleGenerateSpec = async ({ patternId, answers, stack, customRequirements }) => {
+  const handleGenerateSpec = async ({ patternId, answers, stack, customRequirements, designTheme }) => {
     setErrorMessage(null);
     setView('loading');
     setLoadingMessage('Compiling formal .spec file & LLM directives...');
@@ -91,7 +91,8 @@ export default function App() {
         domain_title: interpretation?.domain_title,
         domain_summary: interpretation?.domain_summary,
         domain_models: interpretation?.domain_models,
-        user_prompt: interpretation?.user_prompt || promptText
+        user_prompt: interpretation?.user_prompt || promptText,
+        design_theme: designTheme || 'linear_dark'
       };
       const result = await generateSpec(patternId, answers, stack, customRequirements, domainMeta);
       setSpecData(result);
