@@ -14,6 +14,10 @@ class GenerateRequest(BaseModel):
     answers: Dict[str, Any] = {}
     stack: Dict[str, Any] = {"backend": "Python (FastAPI)", "database": "PostgreSQL", "cache": "Redis", "frontend": "React"}
     custom_requirements: Optional[str] = ""
+    domain_title: Optional[str] = None
+    domain_summary: Optional[str] = None
+    domain_models: Optional[Dict[str, Any]] = None
+    user_prompt: Optional[str] = None
 
 @router.post("")
 @router.post("/")
@@ -26,7 +30,11 @@ async def generate_spec(req: GenerateRequest):
         pattern=pattern,
         answers=req.answers,
         stack=req.stack,
-        custom_requirements=req.custom_requirements or ""
+        custom_requirements=req.custom_requirements or "",
+        domain_title=req.domain_title,
+        domain_summary=req.domain_summary,
+        domain_models=req.domain_models,
+        user_prompt=req.user_prompt
     )
 
     return {

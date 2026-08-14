@@ -31,6 +31,9 @@ export default function MCQPanel({
     pattern_category,
     pattern_description,
     pattern_confidence,
+    domain_title,
+    domain_summary,
+    user_prompt,
     reasoning,
     clarifying_questions = [],
     known_failure_modes = [],
@@ -133,14 +136,35 @@ export default function MCQPanel({
 
         <p className="matched-desc">{pattern_description}</p>
 
+        {domain_title && domain_title !== pattern_name && (
+          <div style={{
+            background: 'rgba(56, 189, 248, 0.08)',
+            border: '1px solid rgba(56, 189, 248, 0.25)',
+            borderRadius: 'var(--radius-sm)',
+            padding: '10px 14px',
+            marginBottom: '14px',
+            display: 'flex',
+            alignItems: 'baseline',
+            gap: '8px'
+          }}>
+            <span style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--accent-cyan)', fontWeight: 800, letterSpacing: '0.5px' }}>
+              Target App:
+            </span>
+            <span style={{ fontSize: '14px', color: '#ffffff', fontWeight: 700 }}>{domain_title}</span>
+            {domain_summary && (
+              <span style={{ fontSize: '13px', color: 'var(--text-secondary)', marginLeft: '4px' }}>— {domain_summary}</span>
+            )}
+          </div>
+        )}
+
         <div className="matched-meta">
+          <div className="meta-item">
+            <span style={{ color: 'var(--text-muted)' }}>Architecture:</span>
+            <strong style={{ color: 'var(--text-primary)' }}>{pattern_name}</strong>
+          </div>
           <div className="meta-item">
             <span style={{ color: 'var(--text-muted)' }}>Category:</span>
             <strong style={{ color: 'var(--text-primary)', textTransform: 'capitalize' }}>{pattern_category}</strong>
-          </div>
-          <div className="meta-item">
-            <span style={{ color: 'var(--text-muted)' }}>Pattern ID:</span>
-            <code style={{ color: 'var(--accent-cyan)' }}>{matched_pattern}</code>
           </div>
           <div className="meta-item">
             <span style={{ color: 'var(--text-muted)' }}>AI Reasoning:</span>

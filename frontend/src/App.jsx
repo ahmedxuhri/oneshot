@@ -87,7 +87,13 @@ export default function App() {
     setLoadingMessage('Compiling formal .spec file & LLM directives...');
 
     try {
-      const result = await generateSpec(patternId, answers, stack, customRequirements);
+      const domainMeta = {
+        domain_title: interpretation?.domain_title,
+        domain_summary: interpretation?.domain_summary,
+        domain_models: interpretation?.domain_models,
+        user_prompt: interpretation?.user_prompt || promptText
+      };
+      const result = await generateSpec(patternId, answers, stack, customRequirements, domainMeta);
       setSpecData(result);
       setView('spec');
     } catch (err) {

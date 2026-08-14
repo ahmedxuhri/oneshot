@@ -13,7 +13,7 @@ export async function interpretPrompt(prompt) {
   return res.json();
 }
 
-export async function generateSpec(patternId, answers, stack, customRequirements = '') {
+export async function generateSpec(patternId, answers, stack, customRequirements = '', domainMeta = {}) {
   const res = await fetch(`${BASE}/generate-spec`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -21,7 +21,11 @@ export async function generateSpec(patternId, answers, stack, customRequirements
       pattern_id: patternId,
       answers,
       stack,
-      custom_requirements: customRequirements
+      custom_requirements: customRequirements,
+      domain_title: domainMeta.domain_title,
+      domain_summary: domainMeta.domain_summary,
+      domain_models: domainMeta.domain_models,
+      user_prompt: domainMeta.user_prompt
     })
   });
   if (!res.ok) {
