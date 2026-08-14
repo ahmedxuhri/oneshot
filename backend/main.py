@@ -4,7 +4,7 @@ load_dotenv()
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import interpret, generate
+from routers import interpret, generate, audit
 from services.pattern_loader import load_all_patterns, get_pattern
 
 app = FastAPI(
@@ -30,6 +30,7 @@ app.add_middleware(
 
 app.include_router(interpret.router, prefix="/interpret", tags=["interpret"])
 app.include_router(generate.router, prefix="/generate-spec", tags=["generate"])
+app.include_router(audit.router, prefix="/audit-stack", tags=["audit"])
 
 @app.get("/health")
 def health():

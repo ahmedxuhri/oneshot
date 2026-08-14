@@ -38,3 +38,19 @@ export async function fetchAllPatterns() {
   }
   return res.json();
 }
+
+export async function auditStack(patternId, stack, answers = {}) {
+  const res = await fetch(`${BASE}/audit-stack`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      pattern_id: patternId,
+      stack,
+      answers
+    })
+  });
+  if (!res.ok) {
+    return null;
+  }
+  return res.json();
+}

@@ -11,8 +11,12 @@ import {
   Cpu, 
   Settings2,
   ExternalLink,
-  Smartphone
+  Smartphone,
+  Sparkles,
+  ShieldCheck,
+  Wand2
 } from 'lucide-react';
+import { auditStack } from '../api';
 
 export default function MCQPanel({
   interpretation,
@@ -38,12 +42,13 @@ export default function MCQPanel({
   // Initialize state with default first option for each clarifying question
   const [answers, setAnswers] = useState({});
   const [stack, setStack] = useState({
-    backend: isMobile ? 'Kotlin (Jetpack Compose)' : 'Python (FastAPI)',
-    database: isMobile ? 'Room DB (SQLite)' : 'PostgreSQL',
-    cache: isMobile ? 'DataStore (Encrypted)' : 'Redis',
-    frontend: isMobile ? 'Material Design 3 (Compose)' : 'React (SPA)'
+    backend: isMobile ? 'Kotlin (Jetpack Compose + Coroutines)' : 'Python (FastAPI)',
+    database: isMobile ? 'Room DB (SQLite + Flow)' : 'PostgreSQL',
+    cache: isMobile ? 'EncryptedDataStore / Android Keystore' : 'Redis',
+    frontend: isMobile ? 'Jetpack Compose (Material 3 UI)' : 'React (SPA)'
   });
   const [customNotes, setCustomNotes] = useState('');
+  const [auditData, setAuditData] = useState(null);
 
   useEffect(() => {
     const initialAnswers = {};
@@ -57,17 +62,37 @@ export default function MCQPanel({
     if (isMobile) {
       setStack({
         backend: 'Kotlin (Jetpack Compose + Coroutines)',
-        database: 'Room DB (SQLite Offline-First)',
+        database: 'Room DB (SQLite + Flow)',
         cache: 'EncryptedDataStore / Android Keystore',
         frontend: 'Jetpack Compose (Material 3 UI)'
       });
     }
   }, [clarifying_questions, isMobile]);
 
+  // Run live AI audit whenever stack or answers change
+  useEffect(() => {
+    let active = true;
+    auditStack(matched_pattern, stack, answers).then((res) => {
+      if (active && res) {
+        setAuditData(res);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [matched_pattern, stack, answers]);
+
   const handleSelectOption = (questionId, option) => {
     setAnswers((prev) => ({
       ...prev,
       [questionId]: option
+    }));
+  };
+
+  const applyAutoFix = (suggestion) => {
+    setStack((prev) => ({
+      ...prev,
+      [suggestion.field]: suggestion.recommended
     }));
   };
 
@@ -171,16 +196,90 @@ export default function MCQPanel({
           ))}
         </div>
 
-        {/* Tech Stack Customizer */}
+        {/* Tech Stack Customizer with Live AI Audit */}
         <div className="stack-section">
-          <div className="section-heading">
-            {isMobile ? <Smartphone size={18} color="var(--accent-blue)" /> : <Server size={18} color="var(--accent-blue)" />}
-            <span>Target Technology Stack</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
+            <div className="section-heading" style={{ margin: 0 }}>
+              {isMobile ? <Smartphone size={18} color="var(--accent-blue)" /> : <Server size={18} color="var(--accent-blue)" />}
+              <span>Target Technology Stack</span>
+            </div>
+
+            {auditData && (
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 10px',
+                borderRadius: '9999px',
+                fontSize: '12px',
+                fontWeight: 700,
+                fontFamily: 'var(--font-mono)',
+                background: auditData.status === 'optimal' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(244, 63, 94, 0.15)',
+                color: auditData.status === 'optimal' ? 'var(--accent-emerald)' : 'var(--accent-rose)',
+                border: `1px solid ${auditData.status === 'optimal' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(244, 63, 94, 0.3)'}`
+              }}>
+                <Sparkles size={12} />
+                <span>{auditData.status === 'optimal' ? 'AI Stack Audit: 100% Cohesive' : 'AI Stack Audit: Incompatible Choices'}</span>
+              </div>
+            )}
           </div>
 
+          {/* AI Audit Warning & Auto-Fix Banner */}
+          {auditData && auditData.suggestions && auditData.suggestions.length > 0 && (
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(244, 63, 94, 0.1) 0%, rgba(245, 158, 11, 0.08) 100%)',
+              border: '1px solid rgba(244, 63, 94, 0.35)',
+              borderRadius: 'var(--radius-md)',
+              padding: '14px 18px',
+              marginBottom: '18px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-rose)', fontWeight: 700, fontSize: '13.5px', marginBottom: '8px' }}>
+                <AlertTriangle size={16} />
+                <span>AI Architecture Advisor: Stack Inconsistency Detected</span>
+              </div>
+
+              {auditData.suggestions.map((sugg, sIdx) => (
+                <div key={sIdx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginTop: '6px' }}>
+                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '580px' }}>
+                    <strong style={{ color: 'var(--text-primary)', textTransform: 'capitalize' }}>{sugg.field}:</strong>{' '}
+                    <span style={{ color: 'var(--accent-rose)', textDecoration: 'line-through' }}>{sugg.current}</span> ➔{' '}
+                    <span style={{ color: 'var(--accent-emerald)', fontWeight: 700 }}>{sugg.recommended}</span>. {sugg.reason}
+                  </div>
+
+                  <button
+                    type="button"
+                    className="btn-secondary-sm"
+                    onClick={() => applyAutoFix(sugg)}
+                    style={{
+                      background: 'rgba(16, 185, 129, 0.15)',
+                      borderColor: 'rgba(16, 185, 129, 0.4)',
+                      color: 'var(--accent-emerald)',
+                      fontWeight: 700
+                    }}
+                  >
+                    <Wand2 size={13} />
+                    <span>Auto-Fix Stack</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="stack-grid">
+            {/* Field 1: Language / Backend */}
             <div className="stack-item">
-              <label>{isMobile ? 'Language / Architecture' : 'Backend Framework'}</label>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <label style={{ margin: 0 }}>{isMobile ? 'Language / Framework' : 'Backend Framework'}</label>
+                {auditData?.stack_verdicts?.backend && (
+                  <span style={{
+                    fontSize: '10.5px',
+                    fontFamily: 'var(--font-mono)',
+                    color: auditData.stack_verdicts.backend.status === 'optimal' ? 'var(--accent-emerald)' : 'var(--accent-rose)'
+                  }}>
+                    {auditData.stack_verdicts.backend.status === 'optimal' ? '✓ Optimal' : '⚠️ Warning'}
+                  </span>
+                )}
+              </div>
               <select
                 className="stack-select"
                 value={stack.backend}
@@ -188,7 +287,7 @@ export default function MCQPanel({
               >
                 {isMobile ? (
                   <>
-                    <option value="Kotlin (Jetpack Compose + Coroutines)">Kotlin (Jetpack Compose)</option>
+                    <option value="Kotlin (Jetpack Compose + Coroutines)">Kotlin (Jetpack Compose) ⭐</option>
                     <option value="Kotlin Multiplatform (KMP)">Kotlin Multiplatform (KMP)</option>
                     <option value="Flutter (Dart + Riverpod)">Flutter (Dart)</option>
                     <option value="React Native (Expo + TypeScript)">React Native (Expo)</option>
@@ -196,7 +295,7 @@ export default function MCQPanel({
                   </>
                 ) : (
                   <>
-                    <option value="Python (FastAPI)">Python (FastAPI)</option>
+                    <option value="Python (FastAPI)">Python (FastAPI) ⭐</option>
                     <option value="Python (Django / DRF)">Python (Django / DRF)</option>
                     <option value="Node.js (Next.js App Router)">Node.js (Next.js)</option>
                     <option value="Node.js (Express / Fastify)">Node.js (Express / Fastify)</option>
@@ -208,52 +307,82 @@ export default function MCQPanel({
               </select>
             </div>
 
+            {/* Field 2: Database */}
             <div className="stack-item">
-              <label>{isMobile ? 'Local Storage / Cache' : 'Primary Database'}</label>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <label style={{ margin: 0 }}>{isMobile ? 'Local Storage / Database' : 'Primary Database'}</label>
+                {auditData?.stack_verdicts?.database && (
+                  <span style={{
+                    fontSize: '10.5px',
+                    fontFamily: 'var(--font-mono)',
+                    color: auditData.stack_verdicts.database.status === 'optimal' ? 'var(--accent-emerald)' : 'var(--accent-rose)'
+                  }}>
+                    {auditData.stack_verdicts.database.status === 'optimal' ? '✓ Optimal' : '⚠️ Mismatch'}
+                  </span>
+                )}
+              </div>
               <select
                 className="stack-select"
                 value={stack.database}
                 onChange={(e) => setStack({ ...stack, database: e.target.value })}
+                style={{
+                  borderColor: auditData?.stack_verdicts?.database?.status === 'warning' ? 'var(--accent-rose)' : 'inherit'
+                }}
               >
                 {isMobile ? (
                   <>
-                    <option value="Room DB (SQLite + Flow)">Room DB (SQLite)</option>
-                    <option value="SQLDelight (Multiplatform)">SQLDelight</option>
-                    <option value="WatermelonDB (React Native)">WatermelonDB</option>
-                    <option value="Hive / Isar (Flutter)">Hive / Isar</option>
+                    <option value="Room DB (SQLite + Flow)">Room DB (SQLite + Flow) ⭐</option>
+                    <option value="SQLDelight (Multiplatform)">SQLDelight (Multiplatform)</option>
+                    <option value="WatermelonDB (React Native)">WatermelonDB (React Native)</option>
+                    <option value="Hive / Isar (Flutter)">Hive / Isar (Flutter)</option>
                     <option value="Firebase Firestore / Realm">Firebase / Realm</option>
                   </>
                 ) : (
                   <>
-                    <option value="PostgreSQL">PostgreSQL</option>
+                    <option value="PostgreSQL">PostgreSQL ⭐</option>
                     <option value="MySQL 8+">MySQL 8+</option>
                     <option value="SQLite (Embedded / LibSQL)">SQLite (LibSQL / Turso)</option>
                     <option value="MongoDB">MongoDB</option>
-                    <option value="Supabase (PostgreSQL + RLS)">Supabase</option>
+                    <option value="Supabase (PostgreSQL + RLS)">Supabase (PostgreSQL)</option>
                   </>
                 )}
               </select>
             </div>
 
+            {/* Field 3: Cache / Preferences */}
             <div className="stack-item">
-              <label>{isMobile ? 'Preferences / Storage' : 'Caching / Queue'}</label>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <label style={{ margin: 0 }}>{isMobile ? 'Preferences / Key-Value' : 'Caching / Queue'}</label>
+                {auditData?.stack_verdicts?.cache && (
+                  <span style={{
+                    fontSize: '10.5px',
+                    fontFamily: 'var(--font-mono)',
+                    color: auditData.stack_verdicts.cache.status === 'optimal' ? 'var(--accent-emerald)' : 'var(--accent-rose)'
+                  }}>
+                    {auditData.stack_verdicts.cache.status === 'optimal' ? '✓ Optimal' : '⚠️ Warning'}
+                  </span>
+                )}
+              </div>
               <select
                 className="stack-select"
                 value={stack.cache}
                 onChange={(e) => setStack({ ...stack, cache: e.target.value })}
+                style={{
+                  borderColor: auditData?.stack_verdicts?.cache?.status === 'warning' ? 'var(--accent-rose)' : 'inherit'
+                }}
               >
                 {isMobile ? (
                   <>
-                    <option value="EncryptedDataStore / Android Keystore">EncryptedDataStore (Keystore)</option>
+                    <option value="EncryptedDataStore / Android Keystore">EncryptedDataStore (Keystore) ⭐</option>
                     <option value="DataStore Preferences">DataStore Preferences</option>
                     <option value="MMKV (High Performance Key-Value)">MMKV</option>
                     <option value="SharedPreferences (Encrypted)">EncryptedSharedPreferences</option>
                   </>
                 ) : (
                   <>
-                    <option value="Redis">Redis</option>
+                    <option value="Redis">Redis ⭐</option>
                     <option value="DragonflyDB / KeyDB">DragonflyDB / KeyDB</option>
-                    <option value="RabbitMQ / Celery">RabbitMQ</option>
+                    <option value="RabbitMQ / Celery">RabbitMQ / Celery</option>
                     <option value="PostgreSQL SKIP LOCKED Queue">PostgreSQL Queue</option>
                     <option value="None / In-Memory">None / In-Memory</option>
                   </>
@@ -261,23 +390,38 @@ export default function MCQPanel({
               </select>
             </div>
 
+            {/* Field 4: UI Framework */}
             <div className="stack-item">
-              <label>UI Framework / Design System</label>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <label style={{ margin: 0 }}>UI System</label>
+                {auditData?.stack_verdicts?.frontend && (
+                  <span style={{
+                    fontSize: '10.5px',
+                    fontFamily: 'var(--font-mono)',
+                    color: auditData.stack_verdicts.frontend.status === 'optimal' ? 'var(--accent-emerald)' : 'var(--accent-rose)'
+                  }}>
+                    {auditData.stack_verdicts.frontend.status === 'optimal' ? '✓ Optimal' : '⚠️ Warning'}
+                  </span>
+                )}
+              </div>
               <select
                 className="stack-select"
                 value={stack.frontend}
                 onChange={(e) => setStack({ ...stack, frontend: e.target.value })}
+                style={{
+                  borderColor: auditData?.stack_verdicts?.frontend?.status === 'warning' ? 'var(--accent-rose)' : 'inherit'
+                }}
               >
                 {isMobile ? (
                   <>
-                    <option value="Jetpack Compose (Material 3 Dynamic Theming)">Jetpack Compose (Material 3)</option>
+                    <option value="Jetpack Compose (Material 3 UI)">Jetpack Compose (Material 3) ⭐</option>
                     <option value="Flutter Material 3">Flutter Material 3</option>
                     <option value="React Native Paper / NativeWind">React Native Paper</option>
-                    <option value="SwiftUI (Apple HIG)">SwiftUI</option>
+                    <option value="SwiftUI (Apple HIG)">SwiftUI (iOS)</option>
                   </>
                 ) : (
                   <>
-                    <option value="React (Vite SPA + Tailwind)">React (Vite SPA)</option>
+                    <option value="React (Vite SPA + Tailwind)">React (Vite SPA) ⭐</option>
                     <option value="Next.js 14+ (React Server Components)">Next.js 14+</option>
                     <option value="Vue.js 3 / Nuxt">Vue.js / Nuxt</option>
                     <option value="SvelteKit">SvelteKit</option>
