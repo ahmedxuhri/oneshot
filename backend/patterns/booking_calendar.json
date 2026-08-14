@@ -1,0 +1,147 @@
+{
+  "id": "booking_calendar",
+  "name": "Appointment Scheduling & Calendar Booking",
+  "category": "booking",
+  "description": "Appointment scheduling system (Calendly-like) with host availability slots, timezone conversions, conflict prevention, and calendar sync (Google/Outlook).",
+  "keywords": [
+    "booking",
+    "appointments",
+    "calendar",
+    "calendly",
+    "slots",
+    "availability",
+    "schedule",
+    "reservations",
+    "meetings",
+    "timezone"
+  ],
+  "data_models": {
+    "availability_rules": {
+      "table": "availability_rules",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "host_id",
+          "type": "UUID",
+          "nullable": false
+        },
+        {
+          "name": "day_of_week",
+          "type": "SMALLINT",
+          "nullable": false
+        },
+        {
+          "name": "start_time",
+          "type": "TIME",
+          "nullable": false
+        },
+        {
+          "name": "end_time",
+          "type": "TIME",
+          "nullable": false
+        },
+        {
+          "name": "timezone",
+          "type": "VARCHAR(100)",
+          "default": "UTC"
+        }
+      ],
+      "indexes": [
+        "host_id",
+        "day_of_week"
+      ],
+      "proven_uses": 15000
+    },
+    "appointments": {
+      "table": "appointments",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "host_id",
+          "type": "UUID",
+          "nullable": false
+        },
+        {
+          "name": "attendee_name",
+          "type": "VARCHAR(255)",
+          "nullable": false
+        },
+        {
+          "name": "attendee_email",
+          "type": "VARCHAR(255)",
+          "nullable": false
+        },
+        {
+          "name": "start_time",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "nullable": false
+        },
+        {
+          "name": "end_time",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "nullable": false
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(30)",
+          "default": "confirmed"
+        },
+        {
+          "name": "meeting_url",
+          "type": "VARCHAR(500)"
+        }
+      ],
+      "indexes": [
+        "host_id",
+        "start_time",
+        "end_time",
+        "status"
+      ],
+      "proven_uses": 15000
+    }
+  },
+  "clarifying_questions": [
+    {
+      "id": "calendar_sync",
+      "question": "External calendar integration?",
+      "options": [
+        "Internal calendar only (send .ics files)",
+        "Google Calendar 2-way sync",
+        "Google + Outlook 365 2-way sync"
+      ],
+      "impacts": "Adds OAuth calendar sync worker and busy-slot conflict checker"
+    },
+    {
+      "id": "slot_buffer",
+      "question": "Buffer times and notice periods?",
+      "options": [
+        "No buffers",
+        "15-minute buffer between meetings",
+        "Configurable buffer and minimum 24h advance notice"
+      ],
+      "impacts": "Configures slot calculation engine logic"
+    }
+  ],
+  "common_stacks": [
+    "Python (FastAPI) + PostgreSQL",
+    "Node.js (Next.js) + PostgreSQL + Google Calendar API"
+  ],
+  "known_constraints": {
+    "conflict_prevention": "PostgreSQL EXCLUDE USING gist (host_id WITH =, tstzrange(start_time, end_time) WITH &&)",
+    "timezone_canonical": "Always store in UTC with client timezone offset"
+  },
+  "known_failure_modes": [
+    "Timezone arithmetic bugs during Daylight Saving Time (DST) transitions",
+    "Race conditions creating overlapping bookings \u2014 solve using PostgreSQL exclusion constraints (tstzrange)",
+    "Stale cached calendar availability failing to reflect newly booked appointments"
+  ],
+  "confidence_score": 0.96
+}

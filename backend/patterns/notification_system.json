@@ -1,0 +1,138 @@
+{
+  "id": "notification_system",
+  "name": "Multi-Channel Notification Dispatcher",
+  "category": "notifications",
+  "description": "Centralized notification pipeline supporting user preference routing, multi-channel dispatch (Email, Push, SMS, In-App), template rendering, and delivery tracking.",
+  "keywords": [
+    "notifications",
+    "email",
+    "sms",
+    "push",
+    "alerts",
+    "inbox",
+    "fcm",
+    "sendgrid",
+    "twilio",
+    "dispatcher",
+    "preferences"
+  ],
+  "data_models": {
+    "notification_templates": {
+      "table": "notification_templates",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "slug",
+          "type": "VARCHAR(100)",
+          "unique": true,
+          "nullable": false
+        },
+        {
+          "name": "channel",
+          "type": "VARCHAR(30)",
+          "nullable": false
+        },
+        {
+          "name": "subject_template",
+          "type": "VARCHAR(255)"
+        },
+        {
+          "name": "body_template",
+          "type": "TEXT",
+          "nullable": false
+        }
+      ],
+      "indexes": [
+        "slug",
+        "channel"
+      ],
+      "proven_uses": 16000
+    },
+    "notification_logs": {
+      "table": "notification_logs",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "user_id",
+          "type": "UUID",
+          "nullable": false
+        },
+        {
+          "name": "template_slug",
+          "type": "VARCHAR(100)",
+          "nullable": false
+        },
+        {
+          "name": "channel",
+          "type": "VARCHAR(30)",
+          "nullable": false
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(30)",
+          "default": "queued"
+        },
+        {
+          "name": "provider_message_id",
+          "type": "VARCHAR(255)"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "NOW()"
+        }
+      ],
+      "indexes": [
+        "user_id",
+        "status",
+        "created_at"
+      ],
+      "proven_uses": 16000
+    }
+  },
+  "clarifying_questions": [
+    {
+      "id": "delivery_channels",
+      "question": "Dispatch channels needed?",
+      "options": [
+        "Email only (SES/SendGrid/Resend)",
+        "Email + In-App Inbox",
+        "Email + In-App + Web/Mobile Push (FCM)",
+        "All channels (Email, Push, SMS, Webhook)"
+      ],
+      "impacts": "Installs channel providers and user notification preference matrix"
+    },
+    {
+      "id": "batching_strategy",
+      "question": "Notification digest / batching?",
+      "options": [
+        "Immediate dispatch",
+        "Hourly digest batching",
+        "Smart batching window (15 min delay for quiet periods)"
+      ],
+      "impacts": "Adds delayed queue worker and digest builder"
+    }
+  ],
+  "common_stacks": [
+    "Python (Celery / FastAPI) + Redis + PostgreSQL",
+    "Node.js (BullMQ) + Redis + PostgreSQL"
+  ],
+  "known_constraints": {
+    "queue_retry_attempts": 3,
+    "exponential_backoff": true
+  },
+  "known_failure_modes": [
+    "Sending emails synchronously in web request thread leading to timeout errors",
+    "Ignoring email provider rate limits causing account suspension",
+    "Missing unsubscribe token and user preference enforcement (CAN-SPAM / GDPR violation)"
+  ],
+  "confidence_score": 0.95
+}

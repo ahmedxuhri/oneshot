@@ -1,0 +1,125 @@
+{
+  "id": "recommendation_engine",
+  "name": "Vector-Based Recommendation Engine",
+  "category": "ai_ml",
+  "description": "Personalized recommendation system utilizing vector embeddings (pgvector), item-to-item similarity, collaborative filtering, and user interaction signals.",
+  "keywords": [
+    "recommendation",
+    "vector",
+    "embeddings",
+    "similarity",
+    "personalization",
+    "pgvector",
+    "related",
+    "ai",
+    "collaborative-filtering"
+  ],
+  "data_models": {
+    "item_embeddings": {
+      "table": "item_embeddings",
+      "fields": [
+        {
+          "name": "item_id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "category",
+          "type": "VARCHAR(100)"
+        },
+        {
+          "name": "embedding",
+          "type": "VECTOR(1536)",
+          "nullable": false
+        },
+        {
+          "name": "updated_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "NOW()"
+        }
+      ],
+      "indexes": [
+        "embedding (HNSW / IVFFlat)",
+        "category"
+      ],
+      "proven_uses": 13000
+    },
+    "user_interactions": {
+      "table": "user_interactions",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "user_id",
+          "type": "UUID",
+          "nullable": false
+        },
+        {
+          "name": "item_id",
+          "type": "UUID",
+          "nullable": false
+        },
+        {
+          "name": "interaction_type",
+          "type": "VARCHAR(30)",
+          "nullable": false
+        },
+        {
+          "name": "weight",
+          "type": "REAL",
+          "default": 1.0
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "NOW()"
+        }
+      ],
+      "indexes": [
+        "user_id",
+        "item_id",
+        "interaction_type"
+      ],
+      "proven_uses": 13000
+    }
+  },
+  "clarifying_questions": [
+    {
+      "id": "vector_store",
+      "question": "Vector database technology?",
+      "options": [
+        "PostgreSQL + pgvector (HNSW index)",
+        "Qdrant / Milvus (Dedicated vector DB)",
+        "Pinecone (Managed)"
+      ],
+      "impacts": "Sets up vector database client and similarity search queries"
+    },
+    {
+      "id": "embedding_model",
+      "question": "Embedding generation model?",
+      "options": [
+        "OpenAI text-embedding-3-small",
+        "Local SentenceTransformers (MiniLM / BGE)",
+        "AWS Bedrock Titan Embeddings"
+      ],
+      "impacts": "Configures embedding pipeline worker"
+    }
+  ],
+  "common_stacks": [
+    "Python (FastAPI) + PostgreSQL (pgvector) + Redis",
+    "Python + Qdrant + FastAPI"
+  ],
+  "known_constraints": {
+    "vector_search_latency_ms": 25,
+    "cosine_similarity_threshold": 0.75
+  },
+  "known_failure_modes": [
+    "Using exact KNN vector distance on unindexed tables causing high CPU utilization \u2014 build HNSW index",
+    "Cold start problem for new users/items without heuristic fallback (e.g. popular items)",
+    "Stale embeddings not updated after major item description edits"
+  ],
+  "confidence_score": 0.92
+}

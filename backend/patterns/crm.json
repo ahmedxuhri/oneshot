@@ -1,0 +1,150 @@
+{
+  "id": "crm_system",
+  "name": "CRM & Sales Pipeline Management",
+  "category": "crm",
+  "description": "Customer relationship management platform with contacts, companies, multi-stage sales deal pipelines, activities, and communication logs.",
+  "keywords": [
+    "crm",
+    "sales",
+    "leads",
+    "contacts",
+    "deals",
+    "pipeline",
+    "companies",
+    "stages",
+    "activities",
+    "tasks",
+    "hubspot"
+  ],
+  "data_models": {
+    "contacts": {
+      "table": "contacts",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "first_name",
+          "type": "VARCHAR(100)"
+        },
+        {
+          "name": "last_name",
+          "type": "VARCHAR(100)"
+        },
+        {
+          "name": "email",
+          "type": "VARCHAR(255)",
+          "unique": true,
+          "nullable": false
+        },
+        {
+          "name": "phone",
+          "type": "VARCHAR(50)"
+        },
+        {
+          "name": "company_id",
+          "type": "UUID"
+        },
+        {
+          "name": "lifecycle_stage",
+          "type": "VARCHAR(50)",
+          "default": "lead"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "NOW()"
+        }
+      ],
+      "indexes": [
+        "email",
+        "company_id",
+        "lifecycle_stage"
+      ],
+      "proven_uses": 20000
+    },
+    "deals": {
+      "table": "deals",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "title",
+          "type": "VARCHAR(255)",
+          "nullable": false
+        },
+        {
+          "name": "amount_cents",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "stage",
+          "type": "VARCHAR(50)",
+          "default": "qualification"
+        },
+        {
+          "name": "contact_id",
+          "type": "UUID",
+          "foreign_key": "contacts.id"
+        },
+        {
+          "name": "expected_close_date",
+          "type": "DATE"
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(20)",
+          "default": "open"
+        }
+      ],
+      "indexes": [
+        "stage",
+        "contact_id",
+        "status"
+      ],
+      "proven_uses": 18000
+    }
+  },
+  "clarifying_questions": [
+    {
+      "id": "custom_fields",
+      "question": "Custom fields support?",
+      "options": [
+        "Fixed schema",
+        "JSONB custom properties with schema validation",
+        "EAV (Entity-Attribute-Value) model"
+      ],
+      "impacts": "Adds dynamic field definition table and validation schema"
+    },
+    {
+      "id": "pipeline_stages",
+      "question": "Configurable deal stages?",
+      "options": [
+        "Default 5 standard stages",
+        "Custom multi-pipeline builder (Kanban)",
+        "Deal automation triggers upon stage change"
+      ],
+      "impacts": "Adds deal_pipelines and pipeline_stages tables"
+    }
+  ],
+  "common_stacks": [
+    "Python (FastAPI) + PostgreSQL",
+    "Node.js (NestJS) + PostgreSQL",
+    "Next.js + Prisma"
+  ],
+  "known_constraints": {
+    "audit_trail_retention_days": 365
+  },
+  "known_failure_modes": [
+    "Inability to filter or sort dynamically on custom fields when using poorly structured JSONB",
+    "Lack of optimistic concurrency control when multiple sales reps update the same contact simultaneously",
+    "Missing soft-delete mechanism causing accidental permanent loss of customer interaction records"
+  ],
+  "confidence_score": 0.93
+}

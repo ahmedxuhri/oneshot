@@ -1,0 +1,165 @@
+{
+  "id": "social_network",
+  "name": "Social Network & Feed Engine",
+  "category": "social",
+  "description": "Social graph platform with follower models, fan-out activity feed, posts, reactions, comments, and mentions.",
+  "keywords": [
+    "social",
+    "feed",
+    "posts",
+    "followers",
+    "following",
+    "timeline",
+    "likes",
+    "comments",
+    "activity",
+    "network",
+    "community"
+  ],
+  "data_models": {
+    "follows": {
+      "table": "follows",
+      "fields": [
+        {
+          "name": "follower_id",
+          "type": "UUID",
+          "nullable": false
+        },
+        {
+          "name": "following_id",
+          "type": "UUID",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "NOW()"
+        }
+      ],
+      "indexes": [
+        "follower_id",
+        "following_id"
+      ],
+      "proven_uses": 22000
+    },
+    "posts": {
+      "table": "posts",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "author_id",
+          "type": "UUID",
+          "nullable": false
+        },
+        {
+          "name": "content",
+          "type": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "media_urls",
+          "type": "JSONB",
+          "default": "[]"
+        },
+        {
+          "name": "likes_count",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "comments_count",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "NOW()"
+        }
+      ],
+      "indexes": [
+        "author_id",
+        "created_at"
+      ],
+      "proven_uses": 25000
+    },
+    "comments": {
+      "table": "comments",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "post_id",
+          "type": "UUID",
+          "foreign_key": "posts.id",
+          "nullable": false
+        },
+        {
+          "name": "author_id",
+          "type": "UUID",
+          "nullable": false
+        },
+        {
+          "name": "content",
+          "type": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "NOW()"
+        }
+      ],
+      "indexes": [
+        "post_id",
+        "author_id",
+        "created_at"
+      ],
+      "proven_uses": 20000
+    }
+  },
+  "clarifying_questions": [
+    {
+      "id": "feed_architecture",
+      "question": "Feed generation strategy?",
+      "options": [
+        "Fan-out on Read (Query followers on request)",
+        "Fan-out on Write (Push to Redis timelines)",
+        "Hybrid (Celebrity fan-out on read, standard fan-out on write)"
+      ],
+      "impacts": "Determines Redis timeline caching vs SQL JOIN feed querying"
+    },
+    {
+      "id": "privacy_scope",
+      "question": "Post privacy controls?",
+      "options": [
+        "Public only",
+        "Public vs Followers only",
+        "Granular (Close friends, Circles, Unlisted)"
+      ],
+      "impacts": "Adds privacy filters and access control index"
+    }
+  ],
+  "common_stacks": [
+    "Python (FastAPI) + PostgreSQL + Redis",
+    "Node.js + PostgreSQL + Redis streams",
+    "Go + ScyllaDB + Redis"
+  ],
+  "known_constraints": {
+    "feed_latency_target_ms": 100,
+    "max_post_media_items": 10
+  },
+  "known_failure_modes": [
+    "Fan-out on write bottleneck for high-follower accounts causing worker queue collapse",
+    "Slow pagination on large feeds using OFFSET instead of cursor-based pagination (keyset pagination)",
+    "Incorrect likes_count sync caused by uncoordinated concurrent increments"
+  ],
+  "confidence_score": 0.93
+}

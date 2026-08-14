@@ -1,0 +1,106 @@
+{
+  "id": "search_engine",
+  "name": "Full-Text Search & Discovery Engine",
+  "category": "search",
+  "description": "Full-text search subsystem with fuzzy matching, autocomplete suggestions, typo tolerance, multi-faceted filtering, and relevance boosting.",
+  "keywords": [
+    "search",
+    "fuzzy",
+    "autocomplete",
+    "elasticsearch",
+    "postgres-search",
+    "meilisearch",
+    "typesense",
+    "facets",
+    "filter",
+    "query"
+  ],
+  "data_models": {
+    "search_documents": {
+      "table": "search_documents",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "index_name",
+          "type": "VARCHAR(100)",
+          "nullable": false
+        },
+        {
+          "name": "document_id",
+          "type": "VARCHAR(255)",
+          "nullable": false
+        },
+        {
+          "name": "title",
+          "type": "VARCHAR(255)",
+          "nullable": false
+        },
+        {
+          "name": "body_text",
+          "type": "TEXT"
+        },
+        {
+          "name": "facets",
+          "type": "JSONB",
+          "default": "{}"
+        },
+        {
+          "name": "search_vector",
+          "type": "TSVECTOR"
+        },
+        {
+          "name": "updated_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "NOW()"
+        }
+      ],
+      "indexes": [
+        "index_name",
+        "document_id",
+        "search_vector (GIN)"
+      ],
+      "proven_uses": 14000
+    }
+  },
+  "clarifying_questions": [
+    {
+      "id": "search_backend",
+      "question": "Search engine backend?",
+      "options": [
+        "PostgreSQL Full-Text Search (tsvector + pg_trgm)",
+        "Meilisearch / Typesense (Fast, Typo-tolerant)",
+        "Elasticsearch / OpenSearch (Massive scale)"
+      ],
+      "impacts": "Defines database driver, GIN index config, or external cluster sync"
+    },
+    {
+      "id": "sync_mechanism",
+      "question": "Search index synchronization method?",
+      "options": [
+        "Database triggers / ORM post-save hooks",
+        "Change Data Capture (Debezium/Kafka)",
+        "Periodic batch rebuild cron"
+      ],
+      "impacts": "Adds sync hooks or streaming CDC consumer"
+    }
+  ],
+  "common_stacks": [
+    "PostgreSQL + pg_trgm + FastAPI",
+    "Meilisearch + Python / Node",
+    "OpenSearch + Python"
+  ],
+  "known_constraints": {
+    "search_latency_target_ms": 30,
+    "typo_tolerance_distance": 2
+  },
+  "known_failure_modes": [
+    "Using SQL LIKE '%query%' queries resulting in full table scans and high latency",
+    "Not maintaining tsvector column via triggers causing search index staleness",
+    "Failing to escape special characters in user search query string"
+  ],
+  "confidence_score": 0.94
+}

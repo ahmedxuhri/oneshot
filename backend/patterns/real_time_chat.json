@@ -1,0 +1,155 @@
+{
+  "id": "real_time_chat",
+  "name": "Real-time Messaging & Team Chat",
+  "category": "communication",
+  "description": "Low-latency chat infrastructure supporting direct messages, group channels, online presence, typing indicators, read receipts, and message history.",
+  "keywords": [
+    "chat",
+    "messaging",
+    "websocket",
+    "realtime",
+    "slack",
+    "discord",
+    "whatsapp",
+    "channels",
+    "presence",
+    "messages"
+  ],
+  "data_models": {
+    "channels": {
+      "table": "channels",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "type",
+          "type": "VARCHAR(20)",
+          "default": "direct"
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR(100)"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "NOW()"
+        }
+      ],
+      "indexes": [
+        "type"
+      ],
+      "proven_uses": 19000
+    },
+    "channel_members": {
+      "table": "channel_members",
+      "fields": [
+        {
+          "name": "channel_id",
+          "type": "UUID",
+          "foreign_key": "channels.id"
+        },
+        {
+          "name": "user_id",
+          "type": "UUID"
+        },
+        {
+          "name": "last_read_message_id",
+          "type": "UUID"
+        },
+        {
+          "name": "joined_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "NOW()"
+        }
+      ],
+      "indexes": [
+        "channel_id",
+        "user_id"
+      ],
+      "proven_uses": 19000
+    },
+    "messages": {
+      "table": "messages",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "channel_id",
+          "type": "UUID",
+          "foreign_key": "channels.id",
+          "nullable": false
+        },
+        {
+          "name": "sender_id",
+          "type": "UUID",
+          "nullable": false
+        },
+        {
+          "name": "content",
+          "type": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "attachments",
+          "type": "JSONB",
+          "default": "[]"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "NOW()"
+        }
+      ],
+      "indexes": [
+        "channel_id",
+        "created_at",
+        "sender_id"
+      ],
+      "proven_uses": 22000
+    }
+  },
+  "clarifying_questions": [
+    {
+      "id": "transport_protocol",
+      "question": "Real-time transport layer?",
+      "options": [
+        "WebSockets with Redis Pub/Sub",
+        "Server-Sent Events (SSE) + HTTP POST",
+        "WebRTC Data Channels"
+      ],
+      "impacts": "Configures WebSocket server router and Redis pub/sub broker"
+    },
+    {
+      "id": "presence_system",
+      "question": "User presence (Online/Offline status)?",
+      "options": [
+        "Redis TTL Heartbeats",
+        "WebSocket connection state tracking",
+        "No presence indicators"
+      ],
+      "impacts": "Adds periodic ping-pong mechanism and presence broadcast"
+    }
+  ],
+  "common_stacks": [
+    "Node.js (Socket.io/ws) + Redis + PostgreSQL",
+    "Python (FastAPI WebSockets) + Redis + PostgreSQL",
+    "Go (Gorilla WebSocket) + Redis"
+  ],
+  "known_constraints": {
+    "message_delivery_latency_ms": 50,
+    "max_attachment_size_mb": 25
+  },
+  "known_failure_modes": [
+    "Scaling WebSockets to multiple server nodes without a shared Redis Pub/Sub message broker",
+    "Missing disconnect cleanup causing memory leaks in active socket tables",
+    "Storing message history only in memory without durable SQL persistence"
+  ],
+  "confidence_score": 0.95
+}

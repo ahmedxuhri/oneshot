@@ -1,0 +1,151 @@
+{
+  "id": "workflow_automation",
+  "name": "Async Task Queue & Workflow Automation",
+  "category": "infrastructure",
+  "description": "Durable distributed task queue and multi-step workflow orchestrator featuring DAG task execution, automatic retries, dead letter queues, and cron scheduling.",
+  "keywords": [
+    "workflow",
+    "queue",
+    "celery",
+    "bullmq",
+    "temporal",
+    "automation",
+    "tasks",
+    "cron",
+    "async",
+    "retry",
+    "dag"
+  ],
+  "data_models": {
+    "workflow_runs": {
+      "table": "workflow_runs",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "workflow_name",
+          "type": "VARCHAR(100)",
+          "nullable": false
+        },
+        {
+          "name": "trigger_type",
+          "type": "VARCHAR(50)",
+          "default": "manual"
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(30)",
+          "default": "running"
+        },
+        {
+          "name": "input_payload",
+          "type": "JSONB"
+        },
+        {
+          "name": "output_payload",
+          "type": "JSONB"
+        },
+        {
+          "name": "error_message",
+          "type": "TEXT"
+        },
+        {
+          "name": "started_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "NOW()"
+        },
+        {
+          "name": "finished_at",
+          "type": "TIMESTAMP WITH TIME ZONE"
+        }
+      ],
+      "indexes": [
+        "workflow_name",
+        "status",
+        "started_at"
+      ],
+      "proven_uses": 19000
+    },
+    "task_executions": {
+      "table": "task_executions",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "run_id",
+          "type": "UUID",
+          "foreign_key": "workflow_runs.id",
+          "nullable": false
+        },
+        {
+          "name": "step_name",
+          "type": "VARCHAR(100)",
+          "nullable": false
+        },
+        {
+          "name": "attempt",
+          "type": "INTEGER",
+          "default": 1
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(30)",
+          "default": "pending"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "NOW()"
+        }
+      ],
+      "indexes": [
+        "run_id",
+        "step_name",
+        "status"
+      ],
+      "proven_uses": 19000
+    }
+  },
+  "clarifying_questions": [
+    {
+      "id": "orchestration_engine",
+      "question": "Workflow queue engine?",
+      "options": [
+        "Redis + BullMQ (Node) / Celery or ARQ (Python)",
+        "Temporal / Cadence (Durable state machine)",
+        "PostgreSQL LISTEN/NOTIFY + SKIP LOCKED"
+      ],
+      "impacts": "Configures queue worker connection and retry scheduler"
+    },
+    {
+      "id": "dead_letter_policy",
+      "question": "Dead-letter queue (DLQ) & alert strategy?",
+      "options": [
+        "Move to DLQ after 3 failed retries with Slack alert",
+        "Infinite retry with exponential backoff",
+        "Discard and log error"
+      ],
+      "impacts": "Adds DLQ monitoring endpoints and alerting hooks"
+    }
+  ],
+  "common_stacks": [
+    "Python (FastAPI + Celery / ARQ) + Redis + PostgreSQL",
+    "Node.js (BullMQ) + Redis + PostgreSQL"
+  ],
+  "known_constraints": {
+    "job_visibility_timeout_sec": 300,
+    "max_concurrency_per_worker": 20
+  },
+  "known_failure_modes": [
+    "Non-idempotent task handlers causing duplicate actions upon worker crash and task redelivery",
+    "Blocking synchronous HTTP endpoints while waiting for background task completion",
+    "Redis queue memory exhaustion from storing massive payload blobs \u2014 store pointers/S3 keys instead"
+  ],
+  "confidence_score": 0.95
+}

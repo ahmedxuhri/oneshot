@@ -1,0 +1,96 @@
+{
+  "id": "analytics_platform",
+  "name": "Event Ingestion & Analytics Engine",
+  "category": "analytics",
+  "description": "High-throughput event tracking pipeline with batched writes, time-series aggregations, funnel analysis, and real-time dashboard queries.",
+  "keywords": [
+    "analytics",
+    "events",
+    "tracking",
+    "telemetry",
+    "metrics",
+    "funnels",
+    "retention",
+    "clickhouse",
+    "timeseries",
+    "dashboard"
+  ],
+  "data_models": {
+    "events": {
+      "table": "events",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "event_name",
+          "type": "VARCHAR(100)",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "type": "VARCHAR(255)"
+        },
+        {
+          "name": "session_id",
+          "type": "VARCHAR(255)"
+        },
+        {
+          "name": "properties",
+          "type": "JSONB",
+          "default": "{}"
+        },
+        {
+          "name": "timestamp",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "NOW()"
+        }
+      ],
+      "indexes": [
+        "event_name",
+        "timestamp",
+        "user_id"
+      ],
+      "proven_uses": 17000
+    }
+  },
+  "clarifying_questions": [
+    {
+      "id": "storage_engine",
+      "question": "Analytics storage engine?",
+      "options": [
+        "PostgreSQL TimescaleDB (Relational)",
+        "ClickHouse (Columnar, High Scale)",
+        "DuckDB / S3 Parquet (Serverless lakehouse)"
+      ],
+      "impacts": "Sets up database connection pool and columnar table partitioning"
+    },
+    {
+      "id": "ingestion_model",
+      "question": "Event ingestion pipeline?",
+      "options": [
+        "Direct HTTP endpoint with Redis memory buffer",
+        "Kafka / AWS Kinesis stream",
+        "Client-side batching library"
+      ],
+      "impacts": "Adds ingestion buffer worker to prevent database write lock"
+    }
+  ],
+  "common_stacks": [
+    "Python (FastAPI) + ClickHouse / TimescaleDB",
+    "Node.js + Redis + ClickHouse",
+    "Go + Kafka + ClickHouse"
+  ],
+  "known_constraints": {
+    "write_throughput_eps": 5000,
+    "aggregation_query_latency_ms": 150
+  },
+  "known_failure_modes": [
+    "Writing individual event rows directly to SQL database on every single web event",
+    "Lack of database table partitioning by time (e.g. daily/monthly partitions) causing slow range scans",
+    "Unbounded JSONB indexing on arbitrary event payload properties"
+  ],
+  "confidence_score": 0.92
+}

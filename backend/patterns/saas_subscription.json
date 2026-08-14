@@ -1,0 +1,210 @@
+{
+  "id": "saas_subscription",
+  "name": "SaaS Subscription & Billing Engine",
+  "category": "saas",
+  "description": "Multi-tier subscription billing system with seat/usage tracking, Stripe customer portal, invoice reconciliation, and feature gating.",
+  "keywords": [
+    "saas",
+    "subscription",
+    "stripe",
+    "billing",
+    "plans",
+    "tier",
+    "pricing",
+    "invoices",
+    "usage-based",
+    "metered",
+    "seats"
+  ],
+  "data_models": {
+    "organizations": {
+      "table": "organizations",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR(255)",
+          "nullable": false
+        },
+        {
+          "name": "slug",
+          "type": "VARCHAR(100)",
+          "unique": true,
+          "nullable": false
+        },
+        {
+          "name": "stripe_customer_id",
+          "type": "VARCHAR(255)",
+          "unique": true
+        },
+        {
+          "name": "plan_tier",
+          "type": "VARCHAR(50)",
+          "default": "free"
+        },
+        {
+          "name": "subscription_status",
+          "type": "VARCHAR(50)",
+          "default": "active"
+        },
+        {
+          "name": "seats_limit",
+          "type": "INTEGER",
+          "default": 5
+        },
+        {
+          "name": "current_period_end",
+          "type": "TIMESTAMP WITH TIME ZONE"
+        }
+      ],
+      "indexes": [
+        "slug",
+        "stripe_customer_id",
+        "plan_tier"
+      ],
+      "proven_uses": 35000
+    },
+    "subscriptions": {
+      "table": "subscriptions",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "org_id",
+          "type": "UUID",
+          "foreign_key": "organizations.id",
+          "nullable": false
+        },
+        {
+          "name": "stripe_subscription_id",
+          "type": "VARCHAR(255)",
+          "unique": true
+        },
+        {
+          "name": "plan_id",
+          "type": "VARCHAR(100)",
+          "nullable": false
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(50)",
+          "nullable": false
+        },
+        {
+          "name": "quantity",
+          "type": "INTEGER",
+          "default": 1
+        },
+        {
+          "name": "cancel_at_period_end",
+          "type": "BOOLEAN",
+          "default": false
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "NOW()"
+        }
+      ],
+      "indexes": [
+        "org_id",
+        "stripe_subscription_id",
+        "status"
+      ],
+      "proven_uses": 30000
+    },
+    "usage_records": {
+      "table": "usage_records",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "org_id",
+          "type": "UUID",
+          "foreign_key": "organizations.id",
+          "nullable": false
+        },
+        {
+          "name": "metric_name",
+          "type": "VARCHAR(100)",
+          "nullable": false
+        },
+        {
+          "name": "quantity",
+          "type": "INTEGER",
+          "default": 1
+        },
+        {
+          "name": "timestamp",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "NOW()"
+        }
+      ],
+      "indexes": [
+        "org_id",
+        "metric_name",
+        "timestamp"
+      ],
+      "proven_uses": 20000
+    }
+  },
+  "clarifying_questions": [
+    {
+      "id": "pricing_model",
+      "question": "Pricing structure?",
+      "options": [
+        "Flat monthly/annual tiers",
+        "Per-seat billing",
+        "Usage-based metered billing",
+        "Hybrid (Base tier + overage usage)"
+      ],
+      "impacts": "Sets up Stripe Metered Billing vs Subscription items quantity updates"
+    },
+    {
+      "id": "trial_period",
+      "question": "Free trial configuration?",
+      "options": [
+        "No trial",
+        "14-day trial (no credit card required)",
+        "14-day trial (credit card upfront)",
+        "Freemium tier forever"
+      ],
+      "impacts": "Configures trial period grace logic, dunning emails, and feature restriction middleware"
+    },
+    {
+      "id": "tax_compliance",
+      "question": "Sales tax & VAT handling?",
+      "options": [
+        "Standard Stripe Tax automatic calculation",
+        "Manual inclusive pricing",
+        "Quaderno / TaxJar integration"
+      ],
+      "impacts": "Enables Stripe Tax automated rates and location address verification"
+    }
+  ],
+  "common_stacks": [
+    "Python (FastAPI) + PostgreSQL + Redis",
+    "Node.js (Express) + PostgreSQL + Stripe SDK"
+  ],
+  "known_constraints": {
+    "webhook_latency_tolerance_sec": 30,
+    "grace_period_days": 3,
+    "entitlement_cache_ttl_sec": 300
+  },
+  "known_failure_modes": [
+    "Failing to handle customer.subscription.updated and customer.subscription.deleted webhooks",
+    "Blocking synchronous user requests on Stripe API calls \u2014 always rely on local database entitlements and webhooks",
+    "Not handling dunning / payment failures gracefully leading to immediate accidental service cutoff"
+  ],
+  "confidence_score": 0.96
+}

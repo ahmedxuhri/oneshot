@@ -1,0 +1,113 @@
+{
+  "id": "file_storage",
+  "name": "Cloud Object & Media Storage Service",
+  "category": "storage",
+  "description": "Secure file and media upload manager with presigned S3 URLs, virus scanning, image thumbnail generation, and access-controlled downloads.",
+  "keywords": [
+    "files",
+    "storage",
+    "s3",
+    "upload",
+    "media",
+    "documents",
+    "presigned",
+    "cdn",
+    "attachments",
+    "assets"
+  ],
+  "data_models": {
+    "files": {
+      "table": "files",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "uploader_id",
+          "type": "UUID",
+          "nullable": false
+        },
+        {
+          "name": "bucket",
+          "type": "VARCHAR(100)",
+          "nullable": false
+        },
+        {
+          "name": "s3_key",
+          "type": "VARCHAR(500)",
+          "unique": true,
+          "nullable": false
+        },
+        {
+          "name": "filename",
+          "type": "VARCHAR(255)",
+          "nullable": false
+        },
+        {
+          "name": "mime_type",
+          "type": "VARCHAR(100)",
+          "nullable": false
+        },
+        {
+          "name": "size_bytes",
+          "type": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "is_public",
+          "type": "BOOLEAN",
+          "default": false
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "NOW()"
+        }
+      ],
+      "indexes": [
+        "uploader_id",
+        "s3_key",
+        "mime_type"
+      ],
+      "proven_uses": 21000
+    }
+  },
+  "clarifying_questions": [
+    {
+      "id": "upload_strategy",
+      "question": "Upload flow architecture?",
+      "options": [
+        "Direct client-to-S3 via Presigned PUT/POST URL",
+        "Proxied server upload with stream forwarding",
+        "Multipart chunked upload (for large files > 100MB)"
+      ],
+      "impacts": "Sets up presigned URL generation endpoint vs streaming endpoint"
+    },
+    {
+      "id": "image_processing",
+      "question": "Automated image processing?",
+      "options": [
+        "No processing",
+        "Generate thumbnails (WebP)",
+        "On-demand CDN transforms (Cloudflare Images / Imgproxy)"
+      ],
+      "impacts": "Adds background image transform worker or CDN parameters"
+    }
+  ],
+  "common_stacks": [
+    "Python (FastAPI + Boto3) + AWS S3 / MinIO",
+    "Node.js (AWS SDK) + S3 / Cloudflare R2"
+  ],
+  "known_constraints": {
+    "presigned_url_ttl_seconds": 900,
+    "max_file_size_mb": 500
+  },
+  "known_failure_modes": [
+    "Routing large binary file uploads through the API backend server consuming memory and worker threads",
+    "Trusting user-supplied filename without sanitization causing path traversal vulnerabilities",
+    "Making private S3 buckets publicly readable without signed URL authorization checks"
+  ],
+  "confidence_score": 0.97
+}

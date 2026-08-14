@@ -1,0 +1,151 @@
+{
+  "id": "blog_cms",
+  "name": "Headless CMS & Content Publishing",
+  "category": "cms",
+  "description": "Content management system with markdown/rich-text editing, drafts, scheduled publishing, media library, and SEO metadata.",
+  "keywords": [
+    "blog",
+    "cms",
+    "posts",
+    "articles",
+    "publishing",
+    "content",
+    "markdown",
+    "editor",
+    "headless",
+    "news",
+    "authors"
+  ],
+  "data_models": {
+    "articles": {
+      "table": "articles",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "title",
+          "type": "VARCHAR(255)",
+          "nullable": false
+        },
+        {
+          "name": "slug",
+          "type": "VARCHAR(255)",
+          "unique": true,
+          "nullable": false
+        },
+        {
+          "name": "excerpt",
+          "type": "TEXT"
+        },
+        {
+          "name": "content",
+          "type": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "author_id",
+          "type": "UUID",
+          "nullable": false
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(30)",
+          "default": "draft"
+        },
+        {
+          "name": "published_at",
+          "type": "TIMESTAMP WITH TIME ZONE"
+        },
+        {
+          "name": "seo_title",
+          "type": "VARCHAR(255)"
+        },
+        {
+          "name": "seo_description",
+          "type": "VARCHAR(500)"
+        },
+        {
+          "name": "cover_image_url",
+          "type": "VARCHAR(500)"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "NOW()"
+        }
+      ],
+      "indexes": [
+        "slug",
+        "status",
+        "published_at",
+        "author_id"
+      ],
+      "proven_uses": 30000
+    },
+    "tags": {
+      "table": "tags",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR(100)",
+          "unique": true,
+          "nullable": false
+        },
+        {
+          "name": "slug",
+          "type": "VARCHAR(100)",
+          "unique": true,
+          "nullable": false
+        }
+      ],
+      "indexes": [
+        "slug"
+      ],
+      "proven_uses": 25000
+    }
+  },
+  "clarifying_questions": [
+    {
+      "id": "content_format",
+      "question": "Content editor format?",
+      "options": [
+        "Markdown / MDX",
+        "Structured Block JSON (TipTap/ProseMirror)",
+        "Raw HTML"
+      ],
+      "impacts": "Sets content column schema and sanitation parser"
+    },
+    {
+      "id": "publishing_workflow",
+      "question": "Publishing workflow?",
+      "options": [
+        "Direct publish",
+        "Draft -> Review -> Publish approvals",
+        "Scheduled publishing (Cron/Queue)"
+      ],
+      "impacts": "Adds revision history and scheduled worker trigger"
+    }
+  ],
+  "common_stacks": [
+    "Node.js (Next.js / Astro) + PostgreSQL / SQLite",
+    "Python (FastAPI) + PostgreSQL"
+  ],
+  "known_constraints": {
+    "cache_edge_ttl_sec": 3600,
+    "read_latency_ms": 20
+  },
+  "known_failure_modes": [
+    "Missing slug deduplication causing insert conflicts",
+    "Not sanitizing user HTML / markdown resulting in stored XSS vulnerabilities",
+    "N+1 query loading tags and author profiles per article"
+  ],
+  "confidence_score": 0.96
+}

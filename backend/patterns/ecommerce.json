@@ -1,0 +1,256 @@
+{
+  "id": "ecommerce_store",
+  "name": "E-Commerce & Digital Storefront",
+  "category": "ecommerce",
+  "description": "Full-lifecycle e-commerce platform with catalog management, product variants, shopping cart, checkout, inventory management, and order fulfillment.",
+  "keywords": [
+    "ecommerce",
+    "shop",
+    "store",
+    "cart",
+    "products",
+    "checkout",
+    "orders",
+    "inventory",
+    "shipping",
+    "variants",
+    "catalog"
+  ],
+  "data_models": {
+    "products": {
+      "table": "products",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "title",
+          "type": "VARCHAR(255)",
+          "nullable": false
+        },
+        {
+          "name": "slug",
+          "type": "VARCHAR(255)",
+          "unique": true,
+          "nullable": false
+        },
+        {
+          "name": "description",
+          "type": "TEXT"
+        },
+        {
+          "name": "category_id",
+          "type": "UUID"
+        },
+        {
+          "name": "is_published",
+          "type": "BOOLEAN",
+          "default": true
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "NOW()"
+        }
+      ],
+      "indexes": [
+        "slug",
+        "category_id",
+        "is_published"
+      ],
+      "proven_uses": 45000
+    },
+    "product_variants": {
+      "table": "product_variants",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "product_id",
+          "type": "UUID",
+          "foreign_key": "products.id",
+          "nullable": false
+        },
+        {
+          "name": "sku",
+          "type": "VARCHAR(100)",
+          "unique": true,
+          "nullable": false
+        },
+        {
+          "name": "title",
+          "type": "VARCHAR(255)"
+        },
+        {
+          "name": "price_cents",
+          "type": "INTEGER",
+          "nullable": false
+        },
+        {
+          "name": "inventory_count",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "weight_grams",
+          "type": "INTEGER"
+        }
+      ],
+      "indexes": [
+        "product_id",
+        "sku"
+      ],
+      "proven_uses": 40000
+    },
+    "orders": {
+      "table": "orders",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "order_number",
+          "type": "VARCHAR(50)",
+          "unique": true,
+          "nullable": false
+        },
+        {
+          "name": "customer_id",
+          "type": "UUID"
+        },
+        {
+          "name": "total_cents",
+          "type": "INTEGER",
+          "nullable": false
+        },
+        {
+          "name": "subtotal_cents",
+          "type": "INTEGER",
+          "nullable": false
+        },
+        {
+          "name": "tax_cents",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "shipping_cents",
+          "type": "INTEGER",
+          "default": 0
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(50)",
+          "default": "pending"
+        },
+        {
+          "name": "shipping_address",
+          "type": "JSONB",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "NOW()"
+        }
+      ],
+      "indexes": [
+        "order_number",
+        "customer_id",
+        "status",
+        "created_at"
+      ],
+      "proven_uses": 35000
+    },
+    "order_items": {
+      "table": "order_items",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "order_id",
+          "type": "UUID",
+          "foreign_key": "orders.id",
+          "nullable": false
+        },
+        {
+          "name": "variant_id",
+          "type": "UUID",
+          "foreign_key": "product_variants.id",
+          "nullable": false
+        },
+        {
+          "name": "quantity",
+          "type": "INTEGER",
+          "nullable": false
+        },
+        {
+          "name": "unit_price_cents",
+          "type": "INTEGER",
+          "nullable": false
+        }
+      ],
+      "indexes": [
+        "order_id",
+        "variant_id"
+      ],
+      "proven_uses": 35000
+    }
+  },
+  "clarifying_questions": [
+    {
+      "id": "inventory_model",
+      "question": "Inventory decrement strategy?",
+      "options": [
+        "Hold inventory during checkout (15m expiration)",
+        "Deduct upon successful payment webhook",
+        "Allow backorders"
+      ],
+      "impacts": "Requires Redis reservation lock or webhook inventory decrement trigger"
+    },
+    {
+      "id": "shipping_integration",
+      "question": "Shipping and fulfillment provider?",
+      "options": [
+        "Flat rate / Manual fulfillment",
+        "ShipStation / EasyPost API",
+        "Direct DHL/FedEx API"
+      ],
+      "impacts": "Adds tracking code generation and live rate estimation"
+    },
+    {
+      "id": "discount_system",
+      "question": "Coupons and discount codes?",
+      "options": [
+        "No discounts needed",
+        "Percentage & fixed coupon codes",
+        "Advanced rule engine (BOGO, tiered)"
+      ],
+      "impacts": "Adds coupons and order_discounts tables"
+    }
+  ],
+  "common_stacks": [
+    "Node.js (Next.js + MedusaJS) + PostgreSQL",
+    "Python (Django / FastAPI) + PostgreSQL + Redis"
+  ],
+  "known_constraints": {
+    "cart_abandonment_ttl_hours": 72,
+    "inventory_race_condition_protection": "Atomic decrement with CHECK (inventory_count >= quantity)"
+  },
+  "known_failure_modes": [
+    "Overselling inventory during traffic spikes \u2014 use atomic SQL UPDATE products SET inventory_count = inventory_count - :qty WHERE id = :id AND inventory_count >= :qty",
+    "Recalculating price on client side \u2014 always calculate totals from canonical database price on backend",
+    "Missing idempotency key on checkout submission causing accidental double charges"
+  ],
+  "confidence_score": 0.95
+}

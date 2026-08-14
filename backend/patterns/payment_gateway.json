@@ -1,0 +1,114 @@
+{
+  "id": "payment_gateway",
+  "name": "Payment Processing & Checkout Gateway",
+  "category": "payments",
+  "description": "Secure payment orchestrator supporting Payment Intents, credit cards, Apple Pay/Google Pay, webhook signature verification, and automated refund management.",
+  "keywords": [
+    "payment",
+    "gateway",
+    "stripe",
+    "checkout",
+    "refunds",
+    "transactions",
+    "cards",
+    "apple-pay",
+    "billing",
+    "charges"
+  ],
+  "data_models": {
+    "transactions": {
+      "table": "transactions",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "reference_id",
+          "type": "VARCHAR(100)",
+          "unique": true,
+          "nullable": false
+        },
+        {
+          "name": "amount_cents",
+          "type": "INTEGER",
+          "nullable": false
+        },
+        {
+          "name": "currency",
+          "type": "VARCHAR(3)",
+          "default": "USD"
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(30)",
+          "default": "pending"
+        },
+        {
+          "name": "provider",
+          "type": "VARCHAR(50)",
+          "default": "stripe"
+        },
+        {
+          "name": "provider_transaction_id",
+          "type": "VARCHAR(255)"
+        },
+        {
+          "name": "idempotency_key",
+          "type": "VARCHAR(255)",
+          "unique": true,
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "NOW()"
+        }
+      ],
+      "indexes": [
+        "reference_id",
+        "status",
+        "idempotency_key",
+        "provider_transaction_id"
+      ],
+      "proven_uses": 24000
+    }
+  },
+  "clarifying_questions": [
+    {
+      "id": "payment_flow",
+      "question": "Checkout integration mode?",
+      "options": [
+        "Stripe Hosted Checkout (Simplest, fully PCI compliant)",
+        "Custom UI with Stripe Elements / Payment Element",
+        "Multi-provider routing (Stripe + PayPal)"
+      ],
+      "impacts": "Determines frontend integration method and webhook handlers"
+    },
+    {
+      "id": "refund_support",
+      "question": "Automated refund workflow?",
+      "options": [
+        "Full refunds only",
+        "Partial & full refunds with ledger tracking",
+        "No refund API (manual portal)"
+      ],
+      "impacts": "Adds refunds table and balance reconciliation"
+    }
+  ],
+  "common_stacks": [
+    "Python (FastAPI) + PostgreSQL",
+    "Node.js (Express) + PostgreSQL + Stripe SDK"
+  ],
+  "known_constraints": {
+    "pci_compliance_level": "SAQ-A (no raw card data touches application server)",
+    "webhook_signature_verification": "Mandatory HMAC SHA-256 validation"
+  },
+  "known_failure_modes": [
+    "Failing to verify webhook cryptographic signature allowing forged payment success notifications",
+    "Missing idempotency keys resulting in double charges on network reconnects",
+    "Storing raw credit card numbers violating PCI-DSS compliance requirements"
+  ],
+  "confidence_score": 0.98
+}

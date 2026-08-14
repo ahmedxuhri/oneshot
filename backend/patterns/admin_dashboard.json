@@ -1,0 +1,107 @@
+{
+  "id": "admin_dashboard",
+  "name": "Enterprise Admin & Internal Backoffice",
+  "category": "admin",
+  "description": "Internal operations portal featuring dynamic CRUD tables, granular permission gates, audit logging, CSV export, and metric KPIs.",
+  "keywords": [
+    "admin",
+    "dashboard",
+    "backoffice",
+    "internal",
+    "crud",
+    "analytics",
+    "audit-log",
+    "rbac",
+    "metrics",
+    "export"
+  ],
+  "data_models": {
+    "audit_logs": {
+      "table": "audit_logs",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "actor_id",
+          "type": "UUID",
+          "nullable": false
+        },
+        {
+          "name": "action",
+          "type": "VARCHAR(100)",
+          "nullable": false
+        },
+        {
+          "name": "resource_type",
+          "type": "VARCHAR(100)",
+          "nullable": false
+        },
+        {
+          "name": "resource_id",
+          "type": "VARCHAR(255)",
+          "nullable": false
+        },
+        {
+          "name": "changes",
+          "type": "JSONB"
+        },
+        {
+          "name": "ip_address",
+          "type": "INET"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "NOW()"
+        }
+      ],
+      "indexes": [
+        "actor_id",
+        "action",
+        "resource_type",
+        "created_at"
+      ],
+      "proven_uses": 28000
+    }
+  },
+  "clarifying_questions": [
+    {
+      "id": "permission_granularity",
+      "question": "Admin authorization model?",
+      "options": [
+        "Role-based (Superadmin, Editor, Viewer)",
+        "Granular per-table ACL",
+        "Attribute-Based Access Control (ABAC)"
+      ],
+      "impacts": "Determines route and mutation guard interceptors"
+    },
+    {
+      "id": "data_export",
+      "question": "Data export capabilities?",
+      "options": [
+        "Synchronous CSV/JSON download",
+        "Asynchronous background export to S3 via email",
+        "No export needed"
+      ],
+      "impacts": "Adds export worker task to prevent HTTP timeout on large tables"
+    }
+  ],
+  "common_stacks": [
+    "React + Tailwind + FastAPI + PostgreSQL",
+    "Next.js + Prisma + PostgreSQL",
+    "Refine.dev + NestJS"
+  ],
+  "known_constraints": {
+    "audit_trail_immutable": true,
+    "session_timeout_minutes": 30
+  },
+  "known_failure_modes": [
+    "Allowing destructive bulk deletes without two-factor confirmation or audit trail",
+    "Missing server-side permission checks relying only on hidden frontend buttons",
+    "Unbounded SELECT * queries on admin tables causing memory spikes \u2014 enforce default limit and offset"
+  ],
+  "confidence_score": 0.94
+}

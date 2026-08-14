@@ -1,0 +1,96 @@
+{
+  "id": "multi_tenant_saas",
+  "name": "Multi-Tenant Enterprise Architecture",
+  "category": "saas",
+  "description": "Isolated multi-tenant SaaS foundation with tenant subdomain routing, strict row-level security (RLS) or schema-per-tenant isolation, and tenant-scoped auth.",
+  "keywords": [
+    "multi-tenant",
+    "tenant",
+    "saas",
+    "subdomain",
+    "isolation",
+    "enterprise",
+    "rls",
+    "organization",
+    "b2b"
+  ],
+  "data_models": {
+    "tenants": {
+      "table": "tenants",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR(255)",
+          "nullable": false
+        },
+        {
+          "name": "subdomain",
+          "type": "VARCHAR(100)",
+          "unique": true,
+          "nullable": false
+        },
+        {
+          "name": "custom_domain",
+          "type": "VARCHAR(255)",
+          "unique": true
+        },
+        {
+          "name": "settings",
+          "type": "JSONB",
+          "default": "{}"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "NOW()"
+        }
+      ],
+      "indexes": [
+        "subdomain",
+        "custom_domain"
+      ],
+      "proven_uses": 21000
+    }
+  },
+  "clarifying_questions": [
+    {
+      "id": "isolation_model",
+      "question": "Data isolation architecture?",
+      "options": [
+        "Shared database with Row-Level Security (PostgreSQL RLS)",
+        "Separate Schema per tenant (`tenant_abc.users`)",
+        "Separate Database per tenant (Highest isolation)"
+      ],
+      "impacts": "Sets up PostgreSQL RLS policies or dynamic tenant connection pooling"
+    },
+    {
+      "id": "routing_mechanism",
+      "question": "Tenant resolution method?",
+      "options": [
+        "Subdomain resolution (`acme.app.com`)",
+        "Path prefix (`app.com/acme/`)",
+        "JWT token / Header claim (`X-Tenant-ID`)"
+      ],
+      "impacts": "Configures tenant resolution middleware and CORS policy"
+    }
+  ],
+  "common_stacks": [
+    "Python (FastAPI) + PostgreSQL (RLS)",
+    "Node.js (NestJS) + PostgreSQL + Prisma Multi-Schema"
+  ],
+  "known_constraints": {
+    "tenant_data_leakage_risk": 1e-05,
+    "middleware_resolution_time_ms": 2
+  },
+  "known_failure_modes": [
+    "Forgetting WHERE tenant_id = :id on custom SQL queries causing catastrophic cross-tenant data leaks \u2014 use PostgreSQL RLS as a database-enforced safeguard",
+    "Improper caching in Redis where keys lack tenant prefix resulting in cross-tenant cache contamination",
+    "Wildcard SSL certificate misconfiguration for customer subdomains"
+  ],
+  "confidence_score": 0.96
+}

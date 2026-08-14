@@ -1,0 +1,152 @@
+{
+  "id": "api_service",
+  "name": "Public API Gateway & Developer Platform",
+  "category": "developer_tools",
+  "description": "Developer-facing REST API platform with API key management, tier-based rate limiting (Token Bucket), usage analytics, and OpenAPI docs.",
+  "keywords": [
+    "api",
+    "developer",
+    "gateway",
+    "token",
+    "rate-limit",
+    "sdk",
+    "keys",
+    "metering",
+    "rest",
+    "webhooks"
+  ],
+  "data_models": {
+    "api_keys": {
+      "table": "api_keys",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "account_id",
+          "type": "UUID",
+          "nullable": false
+        },
+        {
+          "name": "key_hash",
+          "type": "VARCHAR(255)",
+          "unique": true,
+          "nullable": false
+        },
+        {
+          "name": "key_prefix",
+          "type": "VARCHAR(16)",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR(100)"
+        },
+        {
+          "name": "rate_limit_rpm",
+          "type": "INTEGER",
+          "default": 60
+        },
+        {
+          "name": "is_active",
+          "type": "BOOLEAN",
+          "default": true
+        },
+        {
+          "name": "expires_at",
+          "type": "TIMESTAMP WITH TIME ZONE"
+        },
+        {
+          "name": "last_used_at",
+          "type": "TIMESTAMP WITH TIME ZONE"
+        }
+      ],
+      "indexes": [
+        "key_hash",
+        "key_prefix",
+        "account_id"
+      ],
+      "proven_uses": 18000
+    },
+    "api_requests_log": {
+      "table": "api_requests_log",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "primary": true
+        },
+        {
+          "name": "api_key_id",
+          "type": "UUID",
+          "nullable": false
+        },
+        {
+          "name": "endpoint",
+          "type": "VARCHAR(255)",
+          "nullable": false
+        },
+        {
+          "name": "status_code",
+          "type": "INTEGER",
+          "nullable": false
+        },
+        {
+          "name": "latency_ms",
+          "type": "INTEGER",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "NOW()"
+        }
+      ],
+      "indexes": [
+        "api_key_id",
+        "created_at",
+        "status_code"
+      ],
+      "proven_uses": 15000
+    }
+  },
+  "clarifying_questions": [
+    {
+      "id": "rate_limiting_algorithm",
+      "question": "Rate limiting algorithm?",
+      "options": [
+        "Sliding Window Counter (Redis)",
+        "Token Bucket (Burst allowance)",
+        "Fixed Window (Simple)"
+      ],
+      "impacts": "Selects Redis Lua script for rate limit enforcement"
+    },
+    {
+      "id": "auth_transmission",
+      "question": "API Key transmission method?",
+      "options": [
+        "Bearer Header (`Authorization: Bearer sk_...`)",
+        "Custom Header (`X-API-Key: ...`)",
+        "Both Bearer and Custom header support"
+      ],
+      "impacts": "Configures authentication middleware parser"
+    }
+  ],
+  "common_stacks": [
+    "Python (FastAPI) + Redis + PostgreSQL",
+    "Go (Fiber) + Redis + PostgreSQL",
+    "Node.js (Fastify) + Redis"
+  ],
+  "known_constraints": {
+    "gateway_overhead_ms": 5,
+    "rate_limit_error_code": 429
+  },
+  "known_failure_modes": [
+    "Storing plaintext API keys in database instead of SHA-256 hashes",
+    "Race conditions in rate limit incrementing without atomic Redis Lua scripts",
+    "Synchronously logging every API request to SQL database causing I/O bottleneck \u2014 buffer logs to Redis/ClickHouse"
+  ],
+  "confidence_score": 0.95
+}
