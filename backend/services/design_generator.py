@@ -1,11 +1,22 @@
 import json
 from typing import Dict, Any
 
-THEMES = {
+DEFAULT_THEMES = {
     "linear_dark": {
         "id": "linear_dark",
         "name": "Linear Dark / Midnight Glow",
-        "description": "High-end developer aesthetic. Deep obsidian backgrounds, electric cyan accents, subtle 1px glass borders, and high contrast typography.",
+        "badge": "Developer / Modern Dark",
+        "badgeColor": "#00F2FE",
+        "desc": "Deep obsidian surfaces, electric cyan CTAs, glass borders, high-contrast monospace accents.",
+        "bgPreview": "#08090C",
+        "cardPreview": "#151821",
+        "primaryColor": "#00F2FE",
+        "accentColor": "#10B981",
+        "textColor": "#F8FAFC",
+        "subTextColor": "#94A3B8",
+        "borderColor": "rgba(255, 255, 255, 0.15)",
+        "btnRadius": "6px",
+        "bestFor": "Modern Web Apps, Developer Tools & SaaS",
         "colors": {
             "bg_page": "#08090C",
             "bg_surface": "#0F1117",
@@ -33,13 +44,23 @@ THEMES = {
         "shadows": {
             "card": "0 8px 24px rgba(0, 0, 0, 0.5)",
             "glow": "0 0 20px rgba(0, 242, 254, 0.25)"
-        },
-        "best_for": "Web Apps, Developer Tools, Crypto & Modern SaaS"
+        }
     },
     "material_you": {
         "id": "material_you",
         "name": "Material Design 3 / Android M3",
-        "description": "Google Android 15 native aesthetic. Dynamic tonal palettes, pill buttons, elevated surface containers, and fluid 48dp touch targets.",
+        "badge": "Android 15 Native",
+        "badgeColor": "#A8C7FA",
+        "desc": "Google Material You dynamic tonal palette, pill-shaped buttons, 48dp touch targets.",
+        "bgPreview": "#111318",
+        "cardPreview": "#282A2F",
+        "primaryColor": "#A8C7FA",
+        "accentColor": "#A8DAB5",
+        "textColor": "#E2E2E9",
+        "subTextColor": "#C4C6D0",
+        "borderColor": "rgba(196, 198, 208, 0.22)",
+        "btnRadius": "9999px",
+        "bestFor": "Native Android (Jetpack Compose) & Mobile Apps",
         "colors": {
             "bg_page": "#111318",
             "bg_surface": "#1E2025",
@@ -67,13 +88,23 @@ THEMES = {
         "shadows": {
             "card": "0 2px 6px rgba(0, 0, 0, 0.35)",
             "glow": "none"
-        },
-        "best_for": "Native Android (Jetpack Compose), Mobile Apps & Tablets"
+        }
     },
     "apple_hig": {
         "id": "apple_hig",
         "name": "Apple HIG / Clean Glass",
-        "description": "Cupertino premium aesthetic. Frosted glassmorphism (backdrop-filter blur), subtle hair-thin borders, SF Pro typography, and balanced white space.",
+        "badge": "iOS / macOS Native",
+        "badgeColor": "#0A84FF",
+        "desc": "Cupertino frosted glassmorphism, SF Pro typography, refined hairline dividers.",
+        "bgPreview": "#000000",
+        "cardPreview": "#1C1C1E",
+        "primaryColor": "#0A84FF",
+        "accentColor": "#30D158",
+        "textColor": "#FFFFFF",
+        "subTextColor": "rgba(235, 235, 245, 0.6)",
+        "borderColor": "rgba(255, 255, 255, 0.2)",
+        "btnRadius": "10px",
+        "bestFor": "iOS Native (SwiftUI) & Creative Utility Tools",
         "colors": {
             "bg_page": "#000000",
             "bg_surface": "rgba(28, 28, 30, 0.75)",
@@ -101,13 +132,23 @@ THEMES = {
         "shadows": {
             "card": "0 10px 30px rgba(0, 0, 0, 0.4)",
             "glow": "0 4px 20px rgba(10, 132, 255, 0.2)"
-        },
-        "best_for": "iOS Native Apps (SwiftUI), macOS Apps & Creative Tools"
+        }
     },
     "saas_clean_light": {
         "id": "saas_clean_light",
-        "name": "Stripe / Clean Soft SaaS (Light)",
-        "description": "Modern enterprise light mode. Crisp slate surfaces, indigo primary actions, subtle card borders, and clear visual hierarchy.",
+        "name": "Stripe / Clean Soft-SaaS",
+        "badge": "Enterprise Light",
+        "badgeColor": "#6366F1",
+        "desc": "Crisp white cards, soft ambient drop shadows, indigo primary CTAs, high daylight legibility.",
+        "bgPreview": "#F8FAFC",
+        "cardPreview": "#FFFFFF",
+        "primaryColor": "#6366F1",
+        "accentColor": "#10B981",
+        "textColor": "#0F172A",
+        "subTextColor": "#64748B",
+        "borderColor": "#E2E8F0",
+        "btnRadius": "8px",
+        "bestFor": "Admin Dashboards, B2B SaaS & Billing Portals",
         "colors": {
             "bg_page": "#F8FAFC",
             "bg_surface": "#FFFFFF",
@@ -135,13 +176,23 @@ THEMES = {
         "shadows": {
             "card": "0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1)",
             "glow": "0 4px 14px rgba(99, 102, 241, 0.18)"
-        },
-        "best_for": "B2B SaaS, Billing Portals, Admin Dashboards & FinTech"
+        }
     },
     "tactical_mono": {
         "id": "tactical_mono",
-        "name": "Tactical Monospace / FinTech Terminal",
-        "description": "High-density data interface. Sharp corners, neon amber/emerald telemetry indicators, compact spacing, and monospace tables.",
+        "name": "Tactical Monospace / FinTech",
+        "badge": "Telemetry / Terminal",
+        "badgeColor": "#F59E0B",
+        "desc": "High-density telemetry, neon amber status indicators, compact 4px spacing, sharp edges.",
+        "bgPreview": "#05070A",
+        "cardPreview": "#131822",
+        "primaryColor": "#F59E0B",
+        "accentColor": "#10B981",
+        "textColor": "#F0F6FC",
+        "subTextColor": "#8B949E",
+        "borderColor": "#30363D",
+        "btnRadius": "3px",
+        "bestFor": "Crypto Bots, IoT Telemetry & Trading Terminal UI",
         "colors": {
             "bg_page": "#05070A",
             "bg_surface": "#0C1017",
@@ -169,17 +220,73 @@ THEMES = {
         "shadows": {
             "card": "none",
             "glow": "0 0 10px rgba(245, 158, 11, 0.25)"
-        },
-        "best_for": "Crypto Trading Bots, IoT Pipelines, DevOps & Monitoring"
+        }
     }
 }
 
-def generate_design_md(theme_id: str, app_name: str, pattern_category: str) -> str:
+THEMES = DEFAULT_THEMES
+
+def resolve_theme(theme_input: Any) -> Dict[str, Any]:
+    """
+    Resolves a theme ID or custom dynamic theme object into a complete token dictionary.
+    """
+    if isinstance(theme_input, dict) and "name" in theme_input:
+        # Custom dynamic theme from Bedrock
+        c = theme_input.get("colors", {})
+        bg_page = c.get("bg_page") or theme_input.get("bgPreview", "#0F1117")
+        bg_card = c.get("bg_card") or theme_input.get("cardPreview", "#151821")
+        primary = c.get("accent_primary") or theme_input.get("primaryColor", "#38BDF8")
+        accent = c.get("accent_secondary") or theme_input.get("accentColor", "#10B981")
+        text_pri = c.get("text_primary") or theme_input.get("textColor", "#F8FAFC")
+        text_sec = c.get("text_secondary") or theme_input.get("subTextColor", "#94A3B8")
+        border = c.get("border") or theme_input.get("borderColor", "rgba(255, 255, 255, 0.15)")
+        btn_radius = theme_input.get("btnRadius", "8px")
+
+        return {
+            "id": theme_input.get("id", "custom_theme"),
+            "name": theme_input.get("name", "Custom AI Design System"),
+            "description": theme_input.get("desc") or theme_input.get("description", "AI tailored palette"),
+            "badge": theme_input.get("badge", "AI Custom"),
+            "badgeColor": primary,
+            "colors": {
+                "bg_page": bg_page,
+                "bg_surface": bg_card,
+                "bg_card": bg_card,
+                "text_primary": text_pri,
+                "text_secondary": text_sec,
+                "accent_primary": primary,
+                "accent_secondary": accent,
+                "accent_success": "#10B981",
+                "accent_danger": "#F43F5E",
+                "border": border
+            },
+            "typography": {
+                "font_family_sans": "Plus Jakarta Sans, Inter, system-ui, sans-serif",
+                "font_family_mono": "JetBrains Mono, Fira Code, monospace",
+                "scale": {
+                    "h1": "2.25rem (36px) / 700 / tracking -0.025em",
+                    "h2": "1.75rem (28px) / 700 / tracking -0.02em",
+                    "h3": "1.25rem (20px) / 600 / tracking -0.01em",
+                    "body": "0.9375rem (15px) / 400 / line-height 1.6",
+                    "caption": "0.8125rem (13px) / 500 / line-height 1.4"
+                }
+            },
+            "radius": { "sm": "4px", "md": btn_radius, "lg": "16px", "pill": "9999px" },
+            "shadows": {
+                "card": "0 8px 24px rgba(0, 0, 0, 0.4)",
+                "glow": f"0 0 20px {primary}33"
+            }
+        }
+    elif isinstance(theme_input, str) and theme_input in DEFAULT_THEMES:
+        return DEFAULT_THEMES[theme_input]
+    else:
+        return DEFAULT_THEMES["linear_dark"]
+
+def generate_design_md(theme_input: Any, app_name: str, pattern_category: str) -> str:
     """
     Generates a production-grade DESIGN.md following the Google Labs open specification.
-    Combines YAML frontmatter design tokens with comprehensive UI/UX component guidelines.
     """
-    theme = THEMES.get(theme_id, THEMES["linear_dark"])
+    theme = resolve_theme(theme_input)
     c = theme["colors"]
     t = theme["typography"]
     r = theme["radius"]

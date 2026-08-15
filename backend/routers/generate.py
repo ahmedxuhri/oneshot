@@ -18,7 +18,7 @@ class GenerateRequest(BaseModel):
     domain_summary: Optional[str] = None
     domain_models: Optional[Dict[str, Any]] = None
     user_prompt: Optional[str] = None
-    design_theme: Optional[str] = "linear_dark"
+    design_theme: Optional[Any] = "linear_dark"
 
 @router.post("")
 @router.post("/")

@@ -37,7 +37,7 @@ async def interpret(req: InterpretRequest):
         for p in patterns
     ]
 
-    ai_prompt = f"""You are OneShot Precision Architecture AI.
+    ai_prompt = f"""You are OneShot Precision Architecture & Design AI.
 User wants to build:
 "{prompt}"
 
@@ -45,11 +45,12 @@ Available verified patterns:
 {json.dumps(pattern_index, indent=2)}
 
 Task:
-1. Match to the single best architecture pattern_id. (If the user asks for a mobile/Android app for a specific domain like Chat or Booking, match the domain pattern or mobile pattern appropriately).
+1. Match to the single best architecture pattern_id.
 2. Detect the primary target platform: "android" | "ios" | "cross_platform_mobile" | "fullstack_web" | "backend_api".
-3. Generate a concise domain title (e.g. "Gym Workout & Exercise Tracker" or "Android Appointment Booking App").
+3. Generate a concise domain title (e.g. "Gym Workout & Exercise Tracker" or "Luxury Horology Boutique").
 4. Generate a 1-2 sentence domain summary explaining what this specific app does.
 5. Generate 2-3 domain-specific data models (tables + columns + types) specifically tailored to this user's application idea.
+6. Generate 3-4 distinct UI/UX design themes specifically tailored to this project's visual aesthetic and domain personality (e.g. for gym: Titanium Athletic Lime, Crimson Hyper-Focus; for luxury: Noir & Gold Minimal; for health: Clinical Teal).
 
 Respond with ONLY valid JSON:
 {{
@@ -68,6 +69,24 @@ Respond with ONLY valid JSON:
       "indexes": ["<indexed_column>"]
     }}
   }},
+  "suggested_themes": [
+    {{
+      "id": "<theme_slug>",
+      "name": "<Creative Theme Name>",
+      "badge": "<Category Tag>",
+      "badgeColor": "<Hex code e.g. #00F2FE or #D4AF37>",
+      "desc": "<1 sentence on surfaces, accents, and visual personality>",
+      "bgPreview": "<Page background hex e.g. #0A0A0C or #FFFFFF>",
+      "cardPreview": "<Card surface hex e.g. #141419 or #F8FAFC>",
+      "primaryColor": "<Primary CTA hex>",
+      "accentColor": "<Secondary accent hex>",
+      "textColor": "<High-contrast text hex>",
+      "subTextColor": "<Secondary label text hex>",
+      "borderColor": "<Subtle border rgba or hex>",
+      "btnRadius": "4px" | "8px" | "16px" | "9999px",
+      "bestFor": "<Target use case>"
+    }}
+  ],
   "reasoning": "<1 concise sentence on why this pattern matches>",
   "search_queries": ["<query1>", "<query2>"]
 }}
@@ -75,7 +94,7 @@ Respond with ONLY valid JSON:
 
     parsed = None
     try:
-        raw_response = bedrock.ask(ai_prompt, system="You are a senior software architect and precision system specifier. Always return valid JSON only.")
+        raw_response = bedrock.ask(ai_prompt, system="You are a senior software architect and visual design director. Always return valid JSON only.")
         match = re.search(r'\{.*\}', raw_response, re.DOTALL)
         if match:
             parsed = json.loads(match.group())
@@ -88,6 +107,7 @@ Respond with ONLY valid JSON:
         parsed["domain_title"] = prompt.title()[:50]
         parsed["domain_summary"] = prompt
         parsed["domain_models"] = {}
+        parsed["suggested_themes"] = []
 
     # Detect platform with fallback heuristics
     prompt_lower = prompt.lower()
@@ -116,6 +136,7 @@ Respond with ONLY valid JSON:
     domain_title = parsed.get("domain_title") or matched["name"]
     domain_summary = parsed.get("domain_summary") or prompt
     domain_models = parsed.get("domain_models") or {}
+    suggested_themes = parsed.get("suggested_themes") or []
 
     # Merge pattern infrastructure models with user's domain models
     merged_models = {**domain_models, **matched.get("data_models", {})}
@@ -141,6 +162,7 @@ Respond with ONLY valid JSON:
         "data_models": list(merged_models.keys()),
         "full_data_models": merged_models,
         "domain_models": domain_models,
+        "suggested_themes": suggested_themes,
         "known_constraints": matched.get("known_constraints", {}),
         "known_failure_modes": matched.get("known_failure_modes", []),
         "web_sources": search_results[:4],

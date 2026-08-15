@@ -17,15 +17,17 @@ import {
   Wand2,
   Palette,
   Laptop,
-  Apple
+  Apple,
+  Filter
 } from 'lucide-react';
 import { auditStack } from '../api';
 
-const THEME_OPTIONS = [
+const CURATED_THEMES = [
   {
     id: 'linear_dark',
     name: 'Linear Dark / Midnight Glow',
     badge: 'Developer / Modern Dark',
+    category: 'curated',
     badgeColor: '#00F2FE',
     desc: 'Deep obsidian surfaces, electric cyan CTAs, glass borders, high-contrast monospace accents.',
     bgPreview: '#08090C',
@@ -42,6 +44,7 @@ const THEME_OPTIONS = [
     id: 'material_you',
     name: 'Material Design 3 / Android M3',
     badge: 'Android 15 Native',
+    category: 'platform',
     badgeColor: '#A8C7FA',
     desc: 'Google Material You dynamic tonal palette, pill-shaped buttons, 48dp touch targets.',
     bgPreview: '#111318',
@@ -58,6 +61,7 @@ const THEME_OPTIONS = [
     id: 'apple_hig',
     name: 'Apple HIG / Clean Glass',
     badge: 'iOS / macOS Native',
+    category: 'platform',
     badgeColor: '#0A84FF',
     desc: 'Cupertino frosted glassmorphism, SF Pro typography, refined hairline dividers.',
     bgPreview: '#000000',
@@ -74,6 +78,7 @@ const THEME_OPTIONS = [
     id: 'saas_clean_light',
     name: 'Stripe / Clean Soft-SaaS',
     badge: 'Enterprise Light',
+    category: 'curated',
     badgeColor: '#6366F1',
     desc: 'Crisp white cards, soft ambient drop shadows, indigo primary CTAs, high daylight legibility.',
     bgPreview: '#F8FAFC',
@@ -90,6 +95,7 @@ const THEME_OPTIONS = [
     id: 'tactical_mono',
     name: 'Tactical Monospace / FinTech',
     badge: 'Telemetry / Terminal',
+    category: 'curated',
     badgeColor: '#F59E0B',
     desc: 'High-density telemetry, neon amber status indicators, compact 4px spacing, sharp edges.',
     bgPreview: '#05070A',
@@ -101,6 +107,57 @@ const THEME_OPTIONS = [
     borderColor: '#30363D',
     btnRadius: '3px',
     bestFor: 'Crypto Bots, IoT Telemetry & Trading Terminal UI'
+  },
+  {
+    id: 'luxury_gold_noir',
+    name: 'Luxury Noir & Royal Gold',
+    badge: 'Haute Horlogerie / VIP',
+    category: 'curated',
+    badgeColor: '#D4AF37',
+    desc: 'Velvet obsidian surfaces, brushed champagne gold accents, serif editorial headings.',
+    bgPreview: '#090A0D',
+    cardPreview: '#14151B',
+    primaryColor: '#D4AF37',
+    accentColor: '#E5C158',
+    textColor: '#F9F9FB',
+    subTextColor: '#9E9EA7',
+    borderColor: 'rgba(212, 175, 55, 0.25)',
+    btnRadius: '4px',
+    bestFor: 'Luxury Boutiques, Premium Concierge & High-End E-Commerce'
+  },
+  {
+    id: 'clinical_teal_health',
+    name: 'Clinical Teal & Serene Care',
+    badge: 'Health & Medical',
+    category: 'curated',
+    badgeColor: '#0D9488',
+    desc: 'Sterile high-clarity surfaces, soothing teal accents, maximum accessibility contrast.',
+    bgPreview: '#F8FAFC',
+    cardPreview: '#FFFFFF',
+    primaryColor: '#0D9488',
+    accentColor: '#0284C7',
+    textColor: '#0F172A',
+    subTextColor: '#64748B',
+    borderColor: '#E2E8F0',
+    btnRadius: '10px',
+    bestFor: 'Patient Portals, Clinical Care & Telehealth'
+  },
+  {
+    id: 'cyberpunk_violet',
+    name: 'Cyberpunk / Neon Violet',
+    badge: 'Gaming & Web3',
+    category: 'curated',
+    badgeColor: '#A855F7',
+    desc: 'Abyssal dark backgrounds, hyper-saturated neon violet and hot pink gradients, glowing borders.',
+    bgPreview: '#07060A',
+    cardPreview: '#120E1C',
+    primaryColor: '#A855F7',
+    accentColor: '#EC4899',
+    textColor: '#FAF5FF',
+    subTextColor: '#A855F7',
+    borderColor: 'rgba(168, 85, 247, 0.3)',
+    btnRadius: '6px',
+    bestFor: 'Gaming Hubs, Web3 dApps & Entertainment'
   }
 ];
 
@@ -124,6 +181,7 @@ export default function MCQPanel({
     reasoning,
     clarifying_questions = [],
     known_failure_modes = [],
+    suggested_themes = [],
     web_sources = []
   } = interpretation;
 
@@ -138,11 +196,27 @@ export default function MCQPanel({
 
   const [platform, setPlatform] = useState(initialPlatform);
 
+  // Combine dynamic AI-generated themes with curated library
+  const aiThemes = (suggested_themes || []).map((t, idx) => ({
+    ...t,
+    id: t.id || `ai_theme_${idx}`,
+    category: 'ai_tailored',
+    badge: t.badge || '✨ AI Tailored'
+  }));
+
+  const allThemesList = [...aiThemes, ...CURATED_THEMES];
+
+  // Theme filter tab: 'all' | 'ai_tailored' | 'platform'
+  const [themeFilter, setThemeFilter] = useState(aiThemes.length > 0 ? 'ai_tailored' : 'all');
+
   // Smart initial design theme
-  const initialTheme = platform === 'android' || platform === 'cross_platform_mobile' ? 'material_you' : 
-                       platform === 'ios' ? 'apple_hig' : 
-                       (['admin', 'crm', 'saas'].includes(pattern_category) ? 'saas_clean_light' : 'linear_dark');
-  const [selectedTheme, setSelectedTheme] = useState(initialTheme);
+  const initialTheme = aiThemes.length > 0 ? aiThemes[0] : (
+    platform === 'android' || platform === 'cross_platform_mobile' ? CURATED_THEMES[1] : 
+    platform === 'ios' ? CURATED_THEMES[2] : 
+    (['admin', 'crm', 'saas'].includes(pattern_category) ? CURATED_THEMES[3] : CURATED_THEMES[0])
+  );
+  
+  const [selectedThemeObj, setSelectedThemeObj] = useState(initialTheme);
 
   // Initialize state with default first option for each clarifying question
   const [answers, setAnswers] = useState({});
@@ -165,7 +239,9 @@ export default function MCQPanel({
         cache: 'EncryptedDataStore / Android Keystore',
         frontend: 'Jetpack Compose (Material 3 UI)'
       });
-      setSelectedTheme('material_you');
+      if (!selectedThemeObj || selectedThemeObj.category !== 'ai_tailored') {
+        setSelectedThemeObj(CURATED_THEMES[1]); // Material You
+      }
     } else if (p === 'cross_platform_mobile') {
       setStack({
         backend: 'Flutter (Dart + Riverpod)',
@@ -173,7 +249,6 @@ export default function MCQPanel({
         cache: 'MMKV (High Performance Key-Value)',
         frontend: 'Flutter Material 3'
       });
-      setSelectedTheme('material_you');
     } else if (p === 'ios') {
       setStack({
         backend: 'Swift (SwiftUI + Combine/Async)',
@@ -181,7 +256,9 @@ export default function MCQPanel({
         cache: 'Keychain Services (Biometric)',
         frontend: 'SwiftUI (Apple HIG)'
       });
-      setSelectedTheme('apple_hig');
+      if (!selectedThemeObj || selectedThemeObj.category !== 'ai_tailored') {
+        setSelectedThemeObj(CURATED_THEMES[2]); // Apple HIG
+      }
     } else {
       setStack({
         backend: 'Python (FastAPI)',
@@ -189,7 +266,9 @@ export default function MCQPanel({
         cache: 'Redis',
         frontend: 'React (Vite SPA + Tailwind)'
       });
-      setSelectedTheme('linear_dark');
+      if (!selectedThemeObj || selectedThemeObj.category !== 'ai_tailored') {
+        setSelectedThemeObj(CURATED_THEMES[0]); // Linear Dark
+      }
     }
   };
 
@@ -239,10 +318,16 @@ export default function MCQPanel({
         answers,
         stack,
         customRequirements: customNotes,
-        designTheme: selectedTheme
+        designTheme: selectedThemeObj
       });
     }
   };
+
+  const displayedThemes = allThemesList.filter((t) => {
+    if (themeFilter === 'ai_tailored') return t.category === 'ai_tailored';
+    if (themeFilter === 'platform') return t.category === 'platform';
+    return true; // 'all'
+  });
 
   return (
     <div className="mcq-container">
@@ -369,24 +454,92 @@ export default function MCQPanel({
               <span>Visual Design System & Aesthetic (DESIGN.md)</span>
             </div>
             <span style={{ fontSize: '12px', color: 'var(--accent-cyan)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
-              Open-Source DESIGN.md Standard
+              Google Labs DESIGN.md Standard
             </span>
           </div>
-          <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', marginBottom: '18px', lineHeight: 1.5 }}>
-            Select the visual aesthetic for your frontend/app. OneShot will generate complete tokens (colors, 8px grid, typography scale, radii) and inject them into the specification to prevent AI design drift.
+
+          <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', marginBottom: '14px', lineHeight: 1.5 }}>
+            Pick the visual identity for your app. The engine generates tokenized palettes, typography scales, and 48dp touch targets to stop AI design drift.
           </p>
 
+          {/* Theme Category Filter Bar */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            marginBottom: '16px',
+            flexWrap: 'wrap'
+          }}>
+            {aiThemes.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setThemeFilter('ai_tailored')}
+                style={{
+                  background: themeFilter === 'ai_tailored' ? 'rgba(0, 242, 254, 0.18)' : 'var(--bg-card)',
+                  border: themeFilter === 'ai_tailored' ? '1.5px solid var(--accent-cyan)' : '1px solid var(--border-subtle)',
+                  color: themeFilter === 'ai_tailored' ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+                  padding: '6px 14px',
+                  borderRadius: '9999px',
+                  fontSize: '12.5px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <Sparkles size={13} />
+                <span>✨ AI-Tailored for your App ({aiThemes.length})</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setThemeFilter('all')}
+              style={{
+                background: themeFilter === 'all' ? 'rgba(255, 255, 255, 0.12)' : 'var(--bg-card)',
+                border: themeFilter === 'all' ? '1.5px solid #ffffff' : '1px solid var(--border-subtle)',
+                color: themeFilter === 'all' ? '#ffffff' : 'var(--text-secondary)',
+                padding: '6px 14px',
+                borderRadius: '9999px',
+                fontSize: '12.5px',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              All Styles ({allThemesList.length})
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setThemeFilter('platform')}
+              style={{
+                background: themeFilter === 'platform' ? 'rgba(56, 189, 248, 0.15)' : 'var(--bg-card)',
+                border: themeFilter === 'platform' ? '1.5px solid var(--accent-blue)' : '1px solid var(--border-subtle)',
+                color: themeFilter === 'platform' ? 'var(--accent-blue)' : 'var(--text-secondary)',
+                padding: '6px 14px',
+                borderRadius: '9999px',
+                fontSize: '12.5px',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              📱 Platform Standards (Material / HIG)
+            </button>
+          </div>
+
+          {/* Theme Cards Grid */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
             gap: '14px'
           }}>
-            {THEME_OPTIONS.map((t) => {
-              const isSelected = selectedTheme === t.id;
+            {displayedThemes.map((t) => {
+              const isSelected = selectedThemeObj?.id === t.id;
               return (
                 <div
                   key={t.id}
-                  onClick={() => setSelectedTheme(t.id)}
+                  onClick={() => setSelectedThemeObj(t)}
                   style={{
                     background: isSelected ? 'rgba(56, 189, 248, 0.1)' : 'var(--bg-card)',
                     border: isSelected ? '2px solid var(--accent-cyan)' : '1px solid var(--border-card)',
@@ -420,9 +573,9 @@ export default function MCQPanel({
                         fontFamily: 'var(--font-mono)',
                         padding: '2px 8px',
                         borderRadius: '9999px',
-                        background: `${t.badgeColor}22`,
-                        color: t.badgeColor,
-                        border: `1px solid ${t.badgeColor}44`
+                        background: `${t.badgeColor || '#00F2FE'}22`,
+                        color: t.badgeColor || '#00F2FE',
+                        border: `1px solid ${t.badgeColor || '#00F2FE'}44`
                       }}>
                         {t.badge}
                       </span>
@@ -436,17 +589,17 @@ export default function MCQPanel({
                   {/* Visual Preview Box (Mini UI Mockup) */}
                   <div>
                     <div style={{
-                      background: t.bgPreview,
-                      border: `1px solid ${t.borderColor}`,
+                      background: t.bgPreview || '#08090C',
+                      border: `1px solid ${t.borderColor || 'rgba(255,255,255,0.15)'}`,
                       borderRadius: '8px',
                       padding: '10px',
                       marginBottom: '10px'
                     }}>
                       {/* Mini Card */}
                       <div style={{
-                        background: t.cardPreview,
-                        border: `1px solid ${t.borderColor}`,
-                        borderRadius: t.btnRadius === '9999px' ? '12px' : t.btnRadius,
+                        background: t.cardPreview || '#151821',
+                        border: `1px solid ${t.borderColor || 'rgba(255,255,255,0.15)'}`,
+                        borderRadius: t.btnRadius === '9999px' ? '12px' : (t.btnRadius || '6px'),
                         padding: '8px 10px',
                         display: 'flex',
                         alignItems: 'center',
@@ -454,18 +607,18 @@ export default function MCQPanel({
                         marginBottom: '8px'
                       }}>
                         <div>
-                          <div style={{ fontSize: '11px', fontWeight: 700, color: t.textColor }}>Preview Card</div>
-                          <div style={{ fontSize: '9.5px', color: t.subTextColor }}>48dp Touch Target</div>
+                          <div style={{ fontSize: '11px', fontWeight: 700, color: t.textColor || '#FFFFFF' }}>Preview Card</div>
+                          <div style={{ fontSize: '9.5px', color: t.subTextColor || '#94A3B8' }}>48dp Touch Target</div>
                         </div>
 
                         {/* Mini Button */}
                         <div style={{
-                          background: t.primaryColor,
-                          color: t.id === 'saas_clean_light' ? '#FFFFFF' : '#000000',
+                          background: t.primaryColor || '#00F2FE',
+                          color: (t.bgPreview === '#FFFFFF' || t.bgPreview === '#F8FAFC') && t.id !== 'saas_clean_light' ? '#000000' : (t.id === 'saas_clean_light' || t.id === 'clinical_teal_health' ? '#FFFFFF' : '#000000'),
                           fontSize: '10px',
                           fontWeight: 700,
                           padding: '4px 10px',
-                          borderRadius: t.btnRadius,
+                          borderRadius: t.btnRadius || '6px',
                           display: 'flex',
                           alignItems: 'center',
                           gap: '3px'
@@ -477,18 +630,18 @@ export default function MCQPanel({
                       {/* Color Palette Dots */}
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span style={{ fontSize: '10px', color: t.subTextColor, fontFamily: 'var(--font-mono)' }}>Palette:</span>
-                          <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: t.bgPreview, border: '1px solid #fff' }} title="Background" />
-                          <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: t.cardPreview, border: '1px solid #999' }} title="Surface" />
+                          <span style={{ fontSize: '10px', color: t.subTextColor || '#94A3B8', fontFamily: 'var(--font-mono)' }}>Palette:</span>
+                          <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: t.bgPreview, border: '1px solid rgba(255,255,255,0.4)' }} title="Background" />
+                          <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: t.cardPreview, border: '1px solid rgba(255,255,255,0.2)' }} title="Surface" />
                           <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: t.primaryColor }} title="Primary Accent" />
                           <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: t.accentColor }} title="Status" />
                         </div>
-                        <span style={{ fontSize: '10px', color: t.subTextColor, fontFamily: 'var(--font-mono)' }}>WCAG AA ✓</span>
+                        <span style={{ fontSize: '10px', color: t.subTextColor || '#94A3B8', fontFamily: 'var(--font-mono)' }}>WCAG AA ✓</span>
                       </div>
                     </div>
 
                     <div style={{ fontSize: '11px', color: 'var(--accent-cyan)', fontFamily: 'var(--font-mono)' }}>
-                      💡 Best for: {t.bestFor}
+                      💡 Best for: {t.bestFor || 'Custom Production Application'}
                     </div>
                   </div>
                 </div>
