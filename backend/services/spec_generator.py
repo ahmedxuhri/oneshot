@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 
-from services.design_generator import generate_design_md, THEMES
+from services.design_generator import generate_design_md, resolve_theme, THEMES
 
 def build_spec_output(
     pattern: Dict[str, Any],
@@ -13,7 +13,7 @@ def build_spec_output(
     domain_summary: Optional[str] = None,
     domain_models: Optional[Dict[str, Any]] = None,
     user_prompt: Optional[str] = None,
-    design_theme: Optional[str] = None
+    design_theme: Optional[Any] = None
 ) -> Dict[str, Any]:
     """
     Constructs the formal OneShot .spec dictionary, DESIGN.md design system, and LLM prompt.
@@ -37,9 +37,12 @@ def build_spec_output(
         else:
             design_theme = "linear_dark"
 
+    # Resolve theme info (handles both string IDs and custom dynamic dicts)
+    theme_info = resolve_theme(design_theme)
+    theme_id = theme_info.get("id", "custom_theme")
+
     # Generate complete DESIGN.md
-    design_md_content = generate_design_md(design_theme, app_title, category)
-    theme_info = THEMES.get(design_theme, THEMES["linear_dark"])
+    design_md_content = generate_design_md(theme_info, app_title, category)
 
     # Merge pattern infrastructure models with user's domain models
     merged_data_models = {}
@@ -58,9 +61,9 @@ def build_spec_output(
         "category": category,
         "confidence": pattern.get("confidence_score", 0.95),
         "design_theme": {
-            "id": design_theme,
-            "name": theme_info["name"],
-            "description": theme_info["description"]
+            "id": theme_id,
+            "name": theme_info.get("name", "Custom Design System"),
+            "description": theme_info.get("description", "")
         },
         "data_models": merged_data_models,
         "user_configuration": answers,
