@@ -16,8 +16,8 @@ import {
   ShieldCheck,
   Wand2,
   Palette,
-  Eye,
-  Check
+  Laptop,
+  Apple
 } from 'lucide-react';
 import { auditStack } from '../api';
 
@@ -117,6 +117,7 @@ export default function MCQPanel({
     pattern_category,
     pattern_description,
     pattern_confidence,
+    target_platform,
     domain_title,
     domain_summary,
     user_prompt,
@@ -126,22 +127,71 @@ export default function MCQPanel({
     web_sources = []
   } = interpretation;
 
-  const isMobile = pattern_category === 'mobile' || matched_pattern.includes('android') || matched_pattern.includes('mobile');
+  // Determine initial platform target
+  const promptLower = (user_prompt || '').toLowerCase();
+  const initialPlatform = target_platform || (
+    promptLower.includes('android') || matched_pattern.includes('android') ? 'android' :
+    promptLower.includes('ios') || promptLower.includes('swift') ? 'ios' :
+    promptLower.includes('flutter') || promptLower.includes('react native') || matched_pattern.includes('mobile') || pattern_category === 'mobile' ? 'cross_platform_mobile' :
+    'fullstack_web'
+  );
+
+  const [platform, setPlatform] = useState(initialPlatform);
 
   // Smart initial design theme
-  const initialTheme = isMobile ? 'material_you' : (['admin', 'crm', 'saas'].includes(pattern_category) ? 'saas_clean_light' : 'linear_dark');
+  const initialTheme = platform === 'android' || platform === 'cross_platform_mobile' ? 'material_you' : 
+                       platform === 'ios' ? 'apple_hig' : 
+                       (['admin', 'crm', 'saas'].includes(pattern_category) ? 'saas_clean_light' : 'linear_dark');
   const [selectedTheme, setSelectedTheme] = useState(initialTheme);
 
   // Initialize state with default first option for each clarifying question
   const [answers, setAnswers] = useState({});
   const [stack, setStack] = useState({
-    backend: isMobile ? 'Kotlin (Jetpack Compose + Coroutines)' : 'Python (FastAPI)',
-    database: isMobile ? 'Room DB (SQLite + Flow)' : 'PostgreSQL',
-    cache: isMobile ? 'EncryptedDataStore / Android Keystore' : 'Redis',
-    frontend: isMobile ? 'Jetpack Compose (Material 3 UI)' : 'React (SPA)'
+    backend: 'Kotlin (Jetpack Compose + Coroutines)',
+    database: 'Room DB (SQLite + Flow)',
+    cache: 'EncryptedDataStore / Android Keystore',
+    frontend: 'Jetpack Compose (Material 3 UI)'
   });
   const [customNotes, setCustomNotes] = useState('');
   const [auditData, setAuditData] = useState(null);
+
+  // Apply default stack when platform changes
+  const applyPlatformDefaults = (p) => {
+    setPlatform(p);
+    if (p === 'android') {
+      setStack({
+        backend: 'Kotlin (Jetpack Compose + Coroutines)',
+        database: 'Room DB (SQLite + Flow)',
+        cache: 'EncryptedDataStore / Android Keystore',
+        frontend: 'Jetpack Compose (Material 3 UI)'
+      });
+      setSelectedTheme('material_you');
+    } else if (p === 'cross_platform_mobile') {
+      setStack({
+        backend: 'Flutter (Dart + Riverpod)',
+        database: 'Hive / Isar (Flutter)',
+        cache: 'MMKV (High Performance Key-Value)',
+        frontend: 'Flutter Material 3'
+      });
+      setSelectedTheme('material_you');
+    } else if (p === 'ios') {
+      setStack({
+        backend: 'Swift (SwiftUI + Combine/Async)',
+        database: 'SwiftData (iOS 17+) / CoreData',
+        cache: 'Keychain Services (Biometric)',
+        frontend: 'SwiftUI (Apple HIG)'
+      });
+      setSelectedTheme('apple_hig');
+    } else {
+      setStack({
+        backend: 'Python (FastAPI)',
+        database: 'PostgreSQL',
+        cache: 'Redis',
+        frontend: 'React (Vite SPA + Tailwind)'
+      });
+      setSelectedTheme('linear_dark');
+    }
+  };
 
   useEffect(() => {
     const initialAnswers = {};
@@ -151,17 +201,8 @@ export default function MCQPanel({
       }
     });
     setAnswers(initialAnswers);
-
-    if (isMobile) {
-      setStack({
-        backend: 'Kotlin (Jetpack Compose + Coroutines)',
-        database: 'Room DB (SQLite + Flow)',
-        cache: 'EncryptedDataStore / Android Keystore',
-        frontend: 'Jetpack Compose (Material 3 UI)'
-      });
-      setSelectedTheme('material_you');
-    }
-  }, [clarifying_questions, isMobile]);
+    applyPlatformDefaults(initialPlatform);
+  }, [clarifying_questions, initialPlatform]);
 
   // Run live AI audit whenever stack or answers change
   useEffect(() => {
@@ -255,8 +296,10 @@ export default function MCQPanel({
             <strong style={{ color: 'var(--text-primary)' }}>{pattern_name}</strong>
           </div>
           <div className="meta-item">
-            <span style={{ color: 'var(--text-muted)' }}>Category:</span>
-            <strong style={{ color: 'var(--text-primary)', textTransform: 'capitalize' }}>{pattern_category}</strong>
+            <span style={{ color: 'var(--text-muted)' }}>Detected Platform:</span>
+            <strong style={{ color: 'var(--accent-cyan)', textTransform: 'capitalize' }}>
+              {platform === 'android' ? '📱 Native Android' : platform === 'ios' ? '🍎 Native iOS' : platform === 'cross_platform_mobile' ? '📱 Cross-Platform Mobile' : '💻 Full-Stack Web'}
+            </strong>
           </div>
           <div className="meta-item">
             <span style={{ color: 'var(--text-muted)' }}>AI Reasoning:</span>
@@ -312,7 +355,7 @@ export default function MCQPanel({
           ))}
         </div>
 
-        {/* Section 2: Visual UI/UX & Design System Selector (NEW) */}
+        {/* Section 2: Visual UI/UX & Design System Selector */}
         <div className="theme-selector-section" style={{
           background: 'var(--bg-surface)',
           border: '1px solid var(--border-subtle)',
@@ -454,11 +497,14 @@ export default function MCQPanel({
           </div>
         </div>
 
-        {/* Section 3: Tech Stack Customizer with Live AI Audit */}
+        {/* Section 3: Tech Stack Customizer with Live Platform Target Switcher */}
         <div className="stack-section">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
             <div className="section-heading" style={{ margin: 0 }}>
-              {isMobile ? <Smartphone size={18} color="var(--accent-blue)" /> : <Server size={18} color="var(--accent-blue)" />}
+              {platform === 'android' ? <Smartphone size={18} color="var(--accent-cyan)" /> : 
+               platform === 'ios' ? <Apple size={18} color="var(--accent-cyan)" /> :
+               platform === 'cross_platform_mobile' ? <Smartphone size={18} color="var(--accent-blue)" /> : 
+               <Laptop size={18} color="var(--accent-blue)" />}
               <span>Target Technology Stack</span>
             </div>
 
@@ -480,6 +526,106 @@ export default function MCQPanel({
                 <span>{auditData.status === 'optimal' ? 'AI Stack Audit: 100% Cohesive' : 'AI Stack Audit: Incompatible Choices'}</span>
               </div>
             )}
+          </div>
+
+          {/* Interactive Platform Target Switcher Tabs */}
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Select Platform Target (Auto-Configures Stack)
+            </label>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gap: '8px'
+            }}>
+              <button
+                type="button"
+                onClick={() => applyPlatformDefaults('android')}
+                style={{
+                  background: platform === 'android' ? 'rgba(0, 242, 254, 0.15)' : 'var(--bg-card)',
+                  border: platform === 'android' ? '2px solid var(--accent-cyan)' : '1px solid var(--border-subtle)',
+                  color: platform === 'android' ? '#ffffff' : 'var(--text-secondary)',
+                  padding: '10px 14px',
+                  borderRadius: 'var(--radius-md)',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.18s ease'
+                }}
+              >
+                <Smartphone size={16} color={platform === 'android' ? 'var(--accent-cyan)' : 'inherit'} />
+                <span>📱 Native Android (Kotlin)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => applyPlatformDefaults('cross_platform_mobile')}
+                style={{
+                  background: platform === 'cross_platform_mobile' ? 'rgba(56, 189, 248, 0.15)' : 'var(--bg-card)',
+                  border: platform === 'cross_platform_mobile' ? '2px solid var(--accent-blue)' : '1px solid var(--border-subtle)',
+                  color: platform === 'cross_platform_mobile' ? '#ffffff' : 'var(--text-secondary)',
+                  padding: '10px 14px',
+                  borderRadius: 'var(--radius-md)',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.18s ease'
+                }}
+              >
+                <Smartphone size={16} color={platform === 'cross_platform_mobile' ? 'var(--accent-blue)' : 'inherit'} />
+                <span>📱 Flutter / React Native</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => applyPlatformDefaults('ios')}
+                style={{
+                  background: platform === 'ios' ? 'rgba(10, 132, 255, 0.15)' : 'var(--bg-card)',
+                  border: platform === 'ios' ? '2px solid #0A84FF' : '1px solid var(--border-subtle)',
+                  color: platform === 'ios' ? '#ffffff' : 'var(--text-secondary)',
+                  padding: '10px 14px',
+                  borderRadius: 'var(--radius-md)',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.18s ease'
+                }}
+              >
+                <Apple size={16} color={platform === 'ios' ? '#0A84FF' : 'inherit'} />
+                <span>🍎 Native iOS (SwiftUI)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => applyPlatformDefaults('fullstack_web')}
+                style={{
+                  background: platform === 'fullstack_web' ? 'rgba(99, 102, 241, 0.15)' : 'var(--bg-card)',
+                  border: platform === 'fullstack_web' ? '2px solid #6366F1' : '1px solid var(--border-subtle)',
+                  color: platform === 'fullstack_web' ? '#ffffff' : 'var(--text-secondary)',
+                  padding: '10px 14px',
+                  borderRadius: 'var(--radius-md)',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.18s ease'
+                }}
+              >
+                <Laptop size={16} color={platform === 'fullstack_web' ? '#6366F1' : 'inherit'} />
+                <span>💻 Full-Stack Web App</span>
+              </button>
+            </div>
           </div>
 
           {/* AI Audit Warning & Auto-Fix Banner */}
@@ -524,10 +670,10 @@ export default function MCQPanel({
           )}
 
           <div className="stack-grid">
-            {/* Field 1: Language / Backend */}
+            {/* Field 1: Language / Framework */}
             <div className="stack-item">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <label style={{ margin: 0 }}>{isMobile ? 'Language / Framework' : 'Backend Framework'}</label>
+                <label style={{ margin: 0 }}>Language / Core Framework</label>
                 {auditData?.stack_verdicts?.backend && (
                   <span style={{
                     fontSize: '10.5px',
@@ -543,32 +689,35 @@ export default function MCQPanel({
                 value={stack.backend}
                 onChange={(e) => setStack({ ...stack, backend: e.target.value })}
               >
-                {isMobile ? (
-                  <>
-                    <option value="Kotlin (Jetpack Compose + Coroutines)">Kotlin (Jetpack Compose) ⭐</option>
-                    <option value="Kotlin Multiplatform (KMP)">Kotlin Multiplatform (KMP)</option>
-                    <option value="Flutter (Dart + Riverpod)">Flutter (Dart)</option>
-                    <option value="React Native (Expo + TypeScript)">React Native (Expo)</option>
-                    <option value="Swift (SwiftUI / iOS)">Swift (SwiftUI)</option>
-                  </>
-                ) : (
-                  <>
-                    <option value="Python (FastAPI)">Python (FastAPI) ⭐</option>
-                    <option value="Python (Django / DRF)">Python (Django / DRF)</option>
-                    <option value="Node.js (Next.js App Router)">Node.js (Next.js)</option>
-                    <option value="Node.js (Express / Fastify)">Node.js (Express / Fastify)</option>
-                    <option value="Node.js (NestJS)">Node.js (NestJS)</option>
-                    <option value="Go (Gin / Fiber)">Go (Gin / Fiber)</option>
-                    <option value="Rust (Axum)">Rust (Axum)</option>
-                  </>
-                )}
+                <optgroup label="Native Android & Kotlin">
+                  <option value="Kotlin (Jetpack Compose + Coroutines)">Kotlin (Jetpack Compose + Coroutines) ⭐</option>
+                  <option value="Kotlin Multiplatform (KMP)">Kotlin Multiplatform (KMP)</option>
+                  <option value="Java (Android Native)">Java (Android Native)</option>
+                </optgroup>
+                <optgroup label="Cross-Platform Mobile">
+                  <option value="Flutter (Dart + Riverpod)">Flutter (Dart + Riverpod) ⭐</option>
+                  <option value="React Native (Expo + TypeScript)">React Native (Expo + TypeScript) ⭐</option>
+                </optgroup>
+                <optgroup label="Native Apple / iOS">
+                  <option value="Swift (SwiftUI + Combine/Async)">Swift (SwiftUI + Combine/Async) ⭐</option>
+                  <option value="Swift (UIKit + Swift Concurrency)">Swift (UIKit + Swift Concurrency)</option>
+                </optgroup>
+                <optgroup label="Backend & Web Frameworks">
+                  <option value="Python (FastAPI)">Python (FastAPI) ⭐</option>
+                  <option value="Python (Django / DRF)">Python (Django / DRF)</option>
+                  <option value="Node.js (Next.js App Router)">Node.js (Next.js App Router)</option>
+                  <option value="Node.js (Express / Fastify)">Node.js (Express / Fastify)</option>
+                  <option value="Node.js (NestJS)">Node.js (NestJS)</option>
+                  <option value="Go (Gin / Fiber)">Go (Gin / Fiber)</option>
+                  <option value="Rust (Axum)">Rust (Axum)</option>
+                </optgroup>
               </select>
             </div>
 
-            {/* Field 2: Database */}
+            {/* Field 2: Database / Local Storage */}
             <div className="stack-item">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <label style={{ margin: 0 }}>{isMobile ? 'Local Storage / Database' : 'Primary Database'}</label>
+                <label style={{ margin: 0 }}>Database / Local Storage</label>
                 {auditData?.stack_verdicts?.database && (
                   <span style={{
                     fontSize: '10.5px',
@@ -587,30 +736,28 @@ export default function MCQPanel({
                   borderColor: auditData?.stack_verdicts?.database?.status === 'warning' ? 'var(--accent-rose)' : 'inherit'
                 }}
               >
-                {isMobile ? (
-                  <>
-                    <option value="Room DB (SQLite + Flow)">Room DB (SQLite + Flow) ⭐</option>
-                    <option value="SQLDelight (Multiplatform)">SQLDelight (Multiplatform)</option>
-                    <option value="WatermelonDB (React Native)">WatermelonDB (React Native)</option>
-                    <option value="Hive / Isar (Flutter)">Hive / Isar (Flutter)</option>
-                    <option value="Firebase Firestore / Realm">Firebase / Realm</option>
-                  </>
-                ) : (
-                  <>
-                    <option value="PostgreSQL">PostgreSQL ⭐</option>
-                    <option value="MySQL 8+">MySQL 8+</option>
-                    <option value="SQLite (Embedded / LibSQL)">SQLite (LibSQL / Turso)</option>
-                    <option value="MongoDB">MongoDB</option>
-                    <option value="Supabase (PostgreSQL + RLS)">Supabase (PostgreSQL)</option>
-                  </>
-                )}
+                <optgroup label="Mobile Embedded Databases">
+                  <option value="Room DB (SQLite + Flow)">Room DB (SQLite + Flow) ⭐ (Android)</option>
+                  <option value="SQLDelight (Multiplatform)">SQLDelight (Multiplatform)</option>
+                  <option value="Hive / Isar (Flutter)">Hive / Isar (Flutter)</option>
+                  <option value="WatermelonDB (React Native)">WatermelonDB (React Native)</option>
+                  <option value="SwiftData (iOS 17+) / CoreData">SwiftData / CoreData (iOS)</option>
+                  <option value="Firebase Firestore / Realm">Firebase Firestore / Realm</option>
+                </optgroup>
+                <optgroup label="Server & Cloud Relational Databases">
+                  <option value="PostgreSQL">PostgreSQL ⭐ (Server)</option>
+                  <option value="MySQL 8+">MySQL 8+</option>
+                  <option value="SQLite (Embedded / LibSQL)">SQLite (LibSQL / Turso)</option>
+                  <option value="MongoDB">MongoDB</option>
+                  <option value="Supabase (PostgreSQL + RLS)">Supabase (PostgreSQL)</option>
+                </optgroup>
               </select>
             </div>
 
             {/* Field 3: Cache / Preferences */}
             <div className="stack-item">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <label style={{ margin: 0 }}>{isMobile ? 'Preferences / Key-Value' : 'Caching / Queue'}</label>
+                <label style={{ margin: 0 }}>Preferences / Cache</label>
                 {auditData?.stack_verdicts?.cache && (
                   <span style={{
                     fontSize: '10.5px',
@@ -629,29 +776,27 @@ export default function MCQPanel({
                   borderColor: auditData?.stack_verdicts?.cache?.status === 'warning' ? 'var(--accent-rose)' : 'inherit'
                 }}
               >
-                {isMobile ? (
-                  <>
-                    <option value="EncryptedDataStore / Android Keystore">EncryptedDataStore (Keystore) ⭐</option>
-                    <option value="DataStore Preferences">DataStore Preferences</option>
-                    <option value="MMKV (High Performance Key-Value)">MMKV</option>
-                    <option value="SharedPreferences (Encrypted)">EncryptedSharedPreferences</option>
-                  </>
-                ) : (
-                  <>
-                    <option value="Redis">Redis ⭐</option>
-                    <option value="DragonflyDB / KeyDB">DragonflyDB / KeyDB</option>
-                    <option value="RabbitMQ / Celery">RabbitMQ / Celery</option>
-                    <option value="PostgreSQL SKIP LOCKED Queue">PostgreSQL Queue</option>
-                    <option value="None / In-Memory">None / In-Memory</option>
-                  </>
-                )}
+                <optgroup label="Mobile Client Security & Preferences">
+                  <option value="EncryptedDataStore / Android Keystore">EncryptedDataStore (Keystore) ⭐ (Android)</option>
+                  <option value="DataStore Preferences">DataStore Preferences</option>
+                  <option value="MMKV (High Performance Key-Value)">MMKV (High Performance Key-Value)</option>
+                  <option value="Keychain Services (Biometric)">Keychain Services (iOS Biometric)</option>
+                  <option value="SharedPreferences (Encrypted)">EncryptedSharedPreferences</option>
+                </optgroup>
+                <optgroup label="Server Distributed Caching & Queues">
+                  <option value="Redis">Redis ⭐ (Server)</option>
+                  <option value="DragonflyDB / KeyDB">DragonflyDB / KeyDB</option>
+                  <option value="RabbitMQ / Celery">RabbitMQ / Celery</option>
+                  <option value="PostgreSQL SKIP LOCKED Queue">PostgreSQL Queue</option>
+                  <option value="None / In-Memory">None / In-Memory</option>
+                </optgroup>
               </select>
             </div>
 
             {/* Field 4: UI Framework */}
             <div className="stack-item">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <label style={{ margin: 0 }}>UI System</label>
+                <label style={{ margin: 0 }}>UI System & Design Framework</label>
                 {auditData?.stack_verdicts?.frontend && (
                   <span style={{
                     fontSize: '10.5px',
@@ -670,22 +815,19 @@ export default function MCQPanel({
                   borderColor: auditData?.stack_verdicts?.frontend?.status === 'warning' ? 'var(--accent-rose)' : 'inherit'
                 }}
               >
-                {isMobile ? (
-                  <>
-                    <option value="Jetpack Compose (Material 3 UI)">Jetpack Compose (Material 3) ⭐</option>
-                    <option value="Flutter Material 3">Flutter Material 3</option>
-                    <option value="React Native Paper / NativeWind">React Native Paper</option>
-                    <option value="SwiftUI (Apple HIG)">SwiftUI (iOS)</option>
-                  </>
-                ) : (
-                  <>
-                    <option value="React (Vite SPA + Tailwind)">React (Vite SPA) ⭐</option>
-                    <option value="Next.js 14+ (React Server Components)">Next.js 14+</option>
-                    <option value="Vue.js 3 / Nuxt">Vue.js / Nuxt</option>
-                    <option value="SvelteKit">SvelteKit</option>
-                    <option value="Vanilla HTML / JS (No Framework)">Vanilla HTML / JS</option>
-                  </>
-                )}
+                <optgroup label="Mobile UI Systems">
+                  <option value="Jetpack Compose (Material 3 UI)">Jetpack Compose (Material 3) ⭐ (Android)</option>
+                  <option value="Flutter Material 3">Flutter Material 3 ⭐</option>
+                  <option value="SwiftUI (Apple HIG)">SwiftUI (Apple HIG) ⭐ (iOS)</option>
+                  <option value="React Native Paper / NativeWind">React Native Paper / NativeWind</option>
+                </optgroup>
+                <optgroup label="Web UI Systems">
+                  <option value="React (Vite SPA + Tailwind)">React (Vite SPA + Tailwind) ⭐</option>
+                  <option value="Next.js 14+ (React Server Components)">Next.js 14+ (React Server Components)</option>
+                  <option value="Vue.js 3 / Nuxt">Vue.js / Nuxt</option>
+                  <option value="SvelteKit">SvelteKit</option>
+                  <option value="Vanilla HTML / JS (No Framework)">Vanilla HTML / JS</option>
+                </optgroup>
               </select>
             </div>
           </div>
@@ -697,7 +839,7 @@ export default function MCQPanel({
             <input
               type="text"
               className="stack-input"
-              placeholder={isMobile ? "e.g. Target Android 14 (API 34), support edge-to-edge layout, implement biometric prompt..." : "e.g. Include rate limiting on /auth endpoints, support dark mode in UI..."}
+              placeholder={platform === 'android' ? "e.g. Target Android 15 (API 35), edge-to-edge Compose layout, BiometricPrompt lock..." : "e.g. Include rate limiting on /auth endpoints, support dark mode in UI..."}
               value={customNotes}
               onChange={(e) => setCustomNotes(e.target.value)}
             />

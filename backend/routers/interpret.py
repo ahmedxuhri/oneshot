@@ -45,14 +45,16 @@ Available verified patterns:
 {json.dumps(pattern_index, indent=2)}
 
 Task:
-1. Match to the single best architecture pattern_id.
-2. Generate a concise domain title (e.g. "Gym Workout & Exercise Tracker" or "Pet Boarding Marketplace").
-3. Generate a 1-2 sentence domain summary explaining what this specific app does.
-4. Generate 2-3 domain-specific data models (tables + columns + types) specifically tailored to this user's application idea (e.g. workouts, exercise_logs for fitness; listings, pets for pet boarding).
+1. Match to the single best architecture pattern_id. (If the user asks for a mobile/Android app for a specific domain like Chat or Booking, match the domain pattern or mobile pattern appropriately).
+2. Detect the primary target platform: "android" | "ios" | "cross_platform_mobile" | "fullstack_web" | "backend_api".
+3. Generate a concise domain title (e.g. "Gym Workout & Exercise Tracker" or "Android Appointment Booking App").
+4. Generate a 1-2 sentence domain summary explaining what this specific app does.
+5. Generate 2-3 domain-specific data models (tables + columns + types) specifically tailored to this user's application idea.
 
 Respond with ONLY valid JSON:
 {{
   "pattern_id": "<exact pattern id>",
+  "target_platform": "android" | "ios" | "cross_platform_mobile" | "fullstack_web" | "backend_api",
   "confidence": 0.95,
   "domain_title": "<Concise domain title>",
   "domain_summary": "<1-2 sentence description of what this specific application builds>",
@@ -87,6 +89,25 @@ Respond with ONLY valid JSON:
         parsed["domain_summary"] = prompt
         parsed["domain_models"] = {}
 
+    # Detect platform with fallback heuristics
+    prompt_lower = prompt.lower()
+    target_platform = parsed.get("target_platform")
+    if not target_platform or target_platform == "fullstack_web":
+        if any(k in prompt_lower for k in ["android", "kotlin", "jetpack compose", "apk", "room db"]):
+            target_platform = "android"
+        elif any(k in prompt_lower for k in ["ios", "swift", "swiftui", "iphone", "ipad"]):
+            target_platform = "ios"
+        elif any(k in prompt_lower for k in ["flutter", "react native", "expo", "mobile app", "phone app"]):
+            target_platform = "cross_platform_mobile"
+        elif any(k in prompt_lower for k in ["cli", "terminal", "command line"]):
+            target_platform = "cli"
+        elif "android" in parsed.get("pattern_id", ""):
+            target_platform = "android"
+        elif "mobile" in parsed.get("pattern_id", ""):
+            target_platform = "cross_platform_mobile"
+        else:
+            target_platform = "fullstack_web"
+
     matched_id = parsed.get("pattern_id")
     matched = next((p for p in patterns if p["id"] == matched_id), None)
     if not matched:
@@ -106,6 +127,7 @@ Respond with ONLY valid JSON:
 
     return {
         "user_prompt": prompt,
+        "target_platform": target_platform,
         "domain_title": domain_title,
         "domain_summary": domain_summary,
         "matched_pattern": matched["id"],
