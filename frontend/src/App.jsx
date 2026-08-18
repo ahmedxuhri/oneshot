@@ -70,9 +70,9 @@ export default function App() {
       known_failure_modes: pattern.known_failure_modes || [],
       web_sources: [
         {
-          title: `${pattern.name} Architecture Reference`,
-          body: `Verified production schema with ${Object.keys(pattern.data_models || {}).length} relational data models.`,
-          href: 'https://sudolaps.top/oneshot'
+          title: `${pattern.name} Architecture Reference & Documentation`,
+          body: `Verified production schema with ${Object.keys(pattern.data_models || {}).length} relational data models and failure mode guards.`,
+          href: pattern.category === 'mobile' ? 'https://developer.android.com/topic/architecture' : 'https://martinfowler.com/architecture/'
         }
       ]
     };
