@@ -110,7 +110,7 @@ export default function App() {
       <header className="app-header">
         <div className="brand-logo" onClick={() => setView('input')}>
           <div className="logo-badge">
-            <Sparkles size={20} />
+            <img src="/oneshot/logo-128.webp" alt="OneShot Logo" className="logo-badge-img" />
           </div>
           <div>
             <div className="brand-name">
