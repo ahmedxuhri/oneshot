@@ -40,7 +40,7 @@ export default function PromptInput({ onSubmit, onOpenCatalog, patternCount = 22
       <h1 className="hero-title">
         Build software with AI.<br />
         <span style={{
-          background: 'linear-gradient(135deg, #00f2fe 0%, #4facfe 100%)',
+          background: 'linear-gradient(135deg, #0284c7 0%, #4f46e5 100%)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent'
         }}>

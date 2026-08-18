@@ -368,7 +368,7 @@ export default function MCQPanel({
             <span style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--accent-cyan)', fontWeight: 800, letterSpacing: '0.5px' }}>
               Target App:
             </span>
-            <span style={{ fontSize: '14px', color: '#ffffff', fontWeight: 700 }}>{domain_title}</span>
+            <span style={{ fontSize: '14px', color: '#0f172a', fontWeight: 700 }}>{domain_title}</span>
             {domain_summary && (
               <span style={{ fontSize: '13px', color: 'var(--text-secondary)', marginLeft: '4px' }}>— {domain_summary}</span>
             )}
@@ -497,9 +497,9 @@ export default function MCQPanel({
               type="button"
               onClick={() => setThemeFilter('all')}
               style={{
-                background: themeFilter === 'all' ? 'rgba(255, 255, 255, 0.12)' : 'var(--bg-card)',
-                border: themeFilter === 'all' ? '1.5px solid #ffffff' : '1px solid var(--border-subtle)',
-                color: themeFilter === 'all' ? '#ffffff' : 'var(--text-secondary)',
+                background: themeFilter === 'all' ? '#f1f5f9' : '#ffffff',
+                border: themeFilter === 'all' ? '1.5px solid #0f172a' : '1px solid var(--border-subtle)',
+                color: themeFilter === 'all' ? '#0f172a' : 'var(--text-secondary)',
                 padding: '6px 14px',
                 borderRadius: '9999px',
                 fontSize: '12.5px',
@@ -563,7 +563,7 @@ export default function MCQPanel({
                         }}>
                           {isSelected && <div className="radio-inner-dot" />}
                         </div>
-                        <span style={{ fontSize: '15px', fontWeight: 700, color: isSelected ? '#ffffff' : 'var(--text-primary)' }}>
+                        <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
                           {t.name}
                         </span>
                       </div>
@@ -697,7 +697,7 @@ export default function MCQPanel({
                 style={{
                   background: platform === 'android' ? 'rgba(0, 242, 254, 0.15)' : 'var(--bg-card)',
                   border: platform === 'android' ? '2px solid var(--accent-cyan)' : '1px solid var(--border-subtle)',
-                  color: platform === 'android' ? '#ffffff' : 'var(--text-secondary)',
+                  color: platform === 'android' ? '#0f172a' : 'var(--text-secondary)',
                   padding: '10px 14px',
                   borderRadius: 'var(--radius-md)',
                   fontWeight: 700,
@@ -719,7 +719,7 @@ export default function MCQPanel({
                 style={{
                   background: platform === 'cross_platform_mobile' ? 'rgba(56, 189, 248, 0.15)' : 'var(--bg-card)',
                   border: platform === 'cross_platform_mobile' ? '2px solid var(--accent-blue)' : '1px solid var(--border-subtle)',
-                  color: platform === 'cross_platform_mobile' ? '#ffffff' : 'var(--text-secondary)',
+                  color: platform === 'cross_platform_mobile' ? '#0f172a' : 'var(--text-secondary)',
                   padding: '10px 14px',
                   borderRadius: 'var(--radius-md)',
                   fontWeight: 700,
@@ -741,7 +741,7 @@ export default function MCQPanel({
                 style={{
                   background: platform === 'ios' ? 'rgba(10, 132, 255, 0.15)' : 'var(--bg-card)',
                   border: platform === 'ios' ? '2px solid #0A84FF' : '1px solid var(--border-subtle)',
-                  color: platform === 'ios' ? '#ffffff' : 'var(--text-secondary)',
+                  color: platform === 'ios' ? '#0f172a' : 'var(--text-secondary)',
                   padding: '10px 14px',
                   borderRadius: 'var(--radius-md)',
                   fontWeight: 700,
@@ -763,7 +763,7 @@ export default function MCQPanel({
                 style={{
                   background: platform === 'fullstack_web' ? 'rgba(99, 102, 241, 0.15)' : 'var(--bg-card)',
                   border: platform === 'fullstack_web' ? '2px solid #6366F1' : '1px solid var(--border-subtle)',
-                  color: platform === 'fullstack_web' ? '#ffffff' : 'var(--text-secondary)',
+                  color: platform === 'fullstack_web' ? '#0f172a' : 'var(--text-secondary)',
                   padding: '10px 14px',
                   borderRadius: 'var(--radius-md)',
                   fontWeight: 700,
