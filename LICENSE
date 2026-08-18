@@ -1,0 +1,52 @@
+Source-Available Proprietary License
+
+Copyright (c) 2026 Ahmed Zuhri (@ahmedxuhri). All Rights Reserved.
+
+==============================================================================
+PREAMBLE
+==============================================================================
+
+This software and its associated documentation files (the "Software") are the 
+proprietary intellectual property of Ahmed Zuhri ("Author"). The Software is 
+made source-available on public repositories for educational, evaluation, 
+and personal review purposes only.
+
+==============================================================================
+TERMS AND CONDITIONS
+==============================================================================
+
+1. PERMITTED USES
+   You are granted a non-exclusive, non-transferable, revocable license to:
+   a. View, read, inspect, and evaluate the source code for personal, academic,
+      or architectural review purposes.
+   b. Run, test, and execute the Software locally on your own personal machine 
+      solely for non-commercial evaluation and contribution purposes.
+
+2. PROHIBITED USES
+   Unless you have obtained prior express written permission or an active 
+   Commercial License from the Author, you MAY NOT:
+   a. Use, run, or deploy the Software (in whole or in part) for any commercial, 
+      revenue-generating, or production business purpose.
+   b. Host, operate, or provide the Software as a service (including, but not 
+      limited to, Software-as-a-Service (SaaS), hosted API, cloud platform, or 
+      managed instance) to third parties.
+   c. Sell, rent, lease, sublicense, distribute, publish, or transfer copies 
+      or derivative works of the Software to any third party.
+   d. Remove, alter, or obscure any copyright, trademark, or proprietary 
+      notices contained within the Software.
+
+3. COMMERCIAL LICENSING & ENTERPRISE INQUIRIES
+   If you wish to use the Software for commercial purposes, integrate it into a 
+   commercial offering, or obtain a private enterprise self-hosted license, 
+   please contact the Author at:
+   - GitHub: https://github.com/ahmedxuhri
+   - Project: https://sudolaps.top/oneshot/
+
+4. NO WARRANTY & LIMITATION OF LIABILITY
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+   FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+   AUTHOR OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER 
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, 
+   OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
+   THE SOFTWARE.

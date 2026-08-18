@@ -114,3 +114,14 @@ OneShot pairs an intelligent architectural interpreter with a curated database o
 - [`PATTERNS.md`](./PATTERNS.md) — Pattern schema & specifications
 - [`IMPLEMENTATION.md`](./IMPLEMENTATION.md) — Step-by-step build log
 - [`ENVIRONMENT.md`](./ENVIRONMENT.md) — Server & hosting environment
+
+---
+
+## License
+
+Copyright © 2026 Ahmed Zuhri ([@ahmedxuhri](https://github.com/ahmedxuhri)). All Rights Reserved.
+
+This project is licensed under a **Source-Available Proprietary License**. 
+- Free for personal evaluation, study, and non-commercial local testing.
+- Commercial use, redistribution, sublicensing, or hosting as a commercial service/SaaS without prior written consent from the author is strictly prohibited.
+- See [`LICENSE`](./LICENSE) for full legal terms and commercial licensing inquiries.
